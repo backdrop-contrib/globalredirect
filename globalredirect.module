@@ -1,17 +1,18 @@
 <?php
-// $Id$
+//$Id$
 /**
  * Implementation of hook_help().
  */
 function globalredirect_help($section) {
   switch ($section) {
-
     case 'admin/modules#description':
-      return t('This module will do a 301 redirect for all nodes that have a URL Alias but are being accessed as a node. This will ensure that pages that have a URL Alias are only accessable from the aliased URL, thus ensuring your site doesnt end up in Google Sandpit for duplicate content.');
+      return t('Searches for an alias of the current URL and redirects if found. Stops duplicate content arising when path module is enabled.');
   }
 }
 
-
+/**
+ * Implementation of hook_init().
+ */
 function globalredirect_init() {
   if(isset($_REQUEST['q']) && function_exists('drupal_get_path_alias')) {
     //Check the current url (eg, node/123) for an alias... If set, redirect to it
@@ -45,4 +46,3 @@ function globalredirect_init() {
     }
   }
 }
-?>
