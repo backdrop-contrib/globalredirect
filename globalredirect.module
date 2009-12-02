@@ -71,7 +71,7 @@ function globalredirect_init() {
     if ($menu_check == GLOBALREDIRECT_MENU_CHECK_ENABLED) {
       // Check the access on the current path, return FALSE if access not allowed. This stops redirection for paths without access permission.
       $item = menu_get_item();
-      _menu_check_access($item, $item['map']);
+      _menu_check_access($item, isset($item['map']) ? $item['map'] : array());
       if (!$item['access']) return FALSE;
     }
 
@@ -82,7 +82,7 @@ function globalredirect_init() {
     }
 
     // Get the Query String (minus the 'q'). If none set, set to NULL
-    $query_string = drupal_query_string_encode($_GET, array('q'));
+    $query_string = drupal_http_build_query(drupal_get_query_parameters());
     if (empty($query_string)) {
       $query_string = NULL;
     }
@@ -135,7 +135,7 @@ function globalredirect_init() {
 
     // Alias case sensitivity check. If there is an alias from the previous lookup, do a query to test for case.
     if ($alias && variable_get('globalredirect_case_sensitive_urls', GLOBALREDIRECT_CASE_SENSITIVE_URLS_ENABLED) == GLOBALREDIRECT_CASE_SENSITIVE_URLS_ENABLED) {
-      $alias_sensitive = db_result(db_query("SELECT dst FROM {url_alias} WHERE dst = '%s'", $alias));
+      $alias_sensitive = db_query('SELECT alias FROM {url_alias} WHERE alias = :alias', array(':alias' => $alias))->fetchField();
       if ($alias_sensitive && $alias != $alias_sensitive) {
         // There is a match and there is a difference in case.
         $alias = $alias_sensitive;
@@ -146,13 +146,13 @@ function globalredirect_init() {
     if ($_REQUEST['q'] != $prefix . $alias) {
       // If it's not just a slash or user has deslash on, redirect
       if (str_replace($prefix . $alias, '', $_REQUEST['q']) != '/' || $redirect_slash) {
-        drupal_goto($alias, $query_string, NULL, 301);
+        drupal_goto($alias, array('query' => $query_string), 301);
       }
     }
 
     // If no alias was returned, the final check is to direct non-clean to clean - if clean is enabled
     if ((variable_get('globalredirect_nonclean2clean', GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) == GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) && ((bool)variable_get('clean_url', 0)) && strpos(request_uri(), '?q=')) {
-      drupal_goto($request, $query_string, NULL, 301);
+      drupal_goto($alias, array('query' => $query_string), 301);
     }
 
     // Restore the destination from earlier so its available in other places.
@@ -167,7 +167,7 @@ function globalredirect_init() {
 function globalredirect_menu() {
   $items = array();
 
-  $items['admin/settings/globalredirect'] = array(
+  $items['admin/config/system/globalredirect'] = array(
     'title' => 'Global Redirect',
     'description' => 'Chose which features you would like enabled for Global Redirect',
     'access callback' => 'user_access',
