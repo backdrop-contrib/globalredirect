@@ -30,7 +30,6 @@ function globalredirect_help($section) {
   }
 }
 
-
 /**
  * Implements hook_init().
  */
@@ -144,7 +143,10 @@ function globalredirect_init() {
 
 
     // Find an alias (if any) for the request
-    $alias = drupal_get_path_alias($request);
+    $langcode = isset($options['language']->language) ? $options['language']->language : '';
+    $alias = drupal_get_path_alias($request, $langcode);
+    // Allow other modules to alter the outbound URL and options.
+    drupal_alter('url_outbound', $alias, $options, $request);
     if ($prefix && $alias) {
       $prefix .= '/';
     }
@@ -152,7 +154,7 @@ function globalredirect_init() {
     // Alias case sensitivity check. If there is an alias from the previous
     // lookup, do a query to test for case.
     if ($alias && variable_get('globalredirect_case_sensitive_urls', GLOBALREDIRECT_CASE_SENSITIVE_URLS_ENABLED) == GLOBALREDIRECT_CASE_SENSITIVE_URLS_ENABLED) {
-      $alias_sensitive = db_query('SELECT alias FROM {url_alias} WHERE alias = :alias', array(':alias' => $alias))->fetchField();
+      $alias_sensitive = db_query('SELECT alias FROM {url_alias} WHERE alias = :alias AND language = :langcode', array(':alias' => $alias, ':langcode' => $langcode))->fetchField();
       if ($alias_sensitive && $alias != $alias_sensitive) {
         // There is a match and there is a difference in case.
         $alias = $alias_sensitive;
