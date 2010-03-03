@@ -69,7 +69,7 @@ function globalredirect_init() {
    * We need to make sure this hook only fires in certain conditions:
    *   1) If the 'drupal_get_path' function exists. Sometimes hook_init gets
    *      called twice, the first call hasn't included path.inc.
-   *   2) If there is a request. There is no point checking the REAL frontpage
+   *   2) If there is a request. There is no point checking the REAL front page
    *      for an alias.
    *   3) If the $_POST is empty. The problem which arises here is if a form
    *      posts to an source path rather than the alias. GlobalRedirect
@@ -122,15 +122,15 @@ function globalredirect_init() {
     $prefix = rtrim($options['prefix'], '/');
 
 
-    // Do a check if this is a frontpage
+    // Do a check if this is a front page
     if (drupal_is_front_page()) {
-      // Redirect if the current request does not refer to the frontpage in the
+      // Redirect if the current request does not refer to the front page in the
       // configured fashion (with or without a prefix)
       if ($_REQUEST['q'] != $prefix) {
         drupal_goto('', $query_string, NULL, 301);
       }
-      // If we've got to this point then we're on a frontpage with a VALID
-      // request path (such as a language-prefix frontpage such as '/de')
+      // If we've got to this point then we're on a front page with a VALID
+      // request path (such as a language-prefix front page such as '/de')
       return;
     }
 
@@ -138,7 +138,7 @@ function globalredirect_init() {
     $redirect_slash = variable_get('globalredirect_deslash', GLOBALREDIRECT_DESLASH_ENABLED) == GLOBALREDIRECT_DESLASH_ENABLED;
     $request = $redirect_slash ? trim($_GET['q'], '/') : $_GET['q'];
 
-    // Optional stripping of "/0". Defaultly disabled
+    // Optional stripping of "/0". Disabled by default.
     switch (variable_get('globalredirect_trailingzero', GLOBALREDIRECT_FEATURE_DISABLED)) {
       case GLOBALREDIRECT_TRAILINGZERO_TAXTERM :
         // If 'taxonomy/term/*' only. If not, break out.

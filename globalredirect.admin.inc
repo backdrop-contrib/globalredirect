@@ -35,7 +35,7 @@ function globalredirect_settings() {
   $form['globalredirect_trailingzero'] = array(
     '#type' => 'radios',
     '#title' => t('Remove Trailing Zero Argument'),
-    '#description' => t('If enabled, any instance of "/0" will be trimmed from the right of the URL. This stops duplicate pages such as "taxonomy/term/1" and "taxonomy/term/1/0" where 0 is the default depth. There is an option of limiting this feature to taxonomy term pages ONLY or allowing it to effect any page. <strong>By default this feature is disabled to avoid any unexpected behaviour</strong>'),
+    '#description' => t('If enabled, any instance of "/0" will be trimmed from the right of the URL. This stops duplicate pages such as "taxonomy/term/1" and "taxonomy/term/1/0" where 0 is the default depth. There is an option of limiting this feature to taxonomy term pages ONLY or allowing it to effect any page. <strong>By default this feature is disabled to avoid any unexpected behavior</strong>'),
     '#options' => array(
       GLOBALREDIRECT_FEATURE_DISABLED => t('Disabled'),
       GLOBALREDIRECT_TRAILINGZERO_TAXTERM => t('Enabled for taxonomy term pages only'),
@@ -47,7 +47,7 @@ function globalredirect_settings() {
   $form['globalredirect_menu_check'] = array(
     '#type' => 'radios',
     '#title' => t('Menu Access Checking'),
-    '#description' => t('If enabled, the module will check the user has access to the page before redirecting. This helps to stop redirection on protected pages and avoids giving away <em>secret</em> URL\'s. <strong>By default this feature is disabled to avoid any unexpected behaviour</strong>'),
+    '#description' => t('If enabled, the module will check the user has access to the page before redirecting. This helps to stop redirection on protected pages and avoids giving away <em>secret</em> URL\'s. <strong>By default this feature is disabled to avoid any unexpected behavior</strong>'),
     '#options' => array(
       GLOBALREDIRECT_FEATURE_DISABLED => t('Disabled'),
       GLOBALREDIRECT_MENU_CHECK_ENABLED => t('Enabled'),
