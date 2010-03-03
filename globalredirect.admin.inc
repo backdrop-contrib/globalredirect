@@ -10,8 +10,6 @@
  *  Function to generate the form setting array
  */
 function globalredirect_settings() {
-  $form = array();
-
   $form['globalredirect_deslash'] = array(
     '#type' => 'radios',
     '#title' => t('Deslash'),
@@ -22,7 +20,6 @@ function globalredirect_settings() {
     ),
     '#default_value' => variable_get('globalredirect_deslash', GLOBALREDIRECT_DESLASH_ENABLED),
   );
-
 
   $form['globalredirect_nonclean2clean'] = array(
     '#type' => 'radios',
@@ -71,4 +68,3 @@ function globalredirect_settings() {
 
   return system_settings_form($form);
 }
-

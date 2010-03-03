@@ -3,9 +3,9 @@
 
 /**
  * @file
- * The Global Redirect module redirects for all paths which have aliases but are not using the aliases which reduces the risk of duplicate content
+ * The Global Redirect module redirects for all paths which have aliases but
+ * are not using the aliases which reduces the risk of duplicate content.
  */
-
 
 define('GLOBALREDIRECT_FEATURE_DISABLED', -1);
 
@@ -21,7 +21,7 @@ define('GLOBALREDIRECT_DESLASH_ENABLED', 1);
 define('GLOBALREDIRECT_MENU_CHECK_ENABLED', 1);
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  */
 function globalredirect_help($section) {
   switch ($section) {
@@ -32,34 +32,44 @@ function globalredirect_help($section) {
 
 
 /**
- * Implementation of hook_init().
+ * Implements hook_init().
  */
 function globalredirect_init() {
   global $language;
 
   /**
-   * We need to do a test to make sure we only clean up URL's for the main request. This stops modules such as
-   * the Ad Module which had its own script in its folder doing a bootstrap which invoked hook_init and caused some banners to get "cleaned up"
-   * See issues: http://drupal.org/node/205810 and http://drupal.org/node/278615
+   * We need to do a test to make sure we only clean up URL's for the main
+   * request. This stops modules such as the Ad Module which had its own script
+   * in its folder doing a bootstrap which invoked hook_init and caused some
+   * banners to get "cleaned up"
+   *
+   * @see http://drupal.org/node/205810
+   * @see http://drupal.org/node/278615
    */
-  if ($_SERVER['SCRIPT_NAME'] != $GLOBALS['base_path'] .'index.php') return FALSE;
+  if ($_SERVER['SCRIPT_NAME'] != $GLOBALS['base_path'] . 'index.php') return FALSE;
 
   /**
-   * If the site is in offline mode there is little point doing any of this as you might end up redirecting to a 503.
+   * If the site is in offline mode there is little point doing any of this as
+   * you might end up redirecting to a 503.
    */
   if (variable_get('site_offline', 0) == 1) return FALSE;
 
   /**
-   * Use of menu_get_item should be optional as it appears in some situations it causes WSOD's...
+   * Use of menu_get_item should be optional as it appears in some situations
+   * it causes WSOD's...
    */
   $menu_check = variable_get('globalredirect_menu_check', GLOBALREDIRECT_FEATURE_DISABLED);
 
 
   /**
    * We need to make sure this hook only fires in certain conditions:
-   *   1) If the 'drupal_get_path' function exists. Sometimes hook_init gets called twice, the first call hasn't included path.inc.
-   *   2) If there is a request. There is no point checking the REAL frontpage for an alias.
-   *   3) If the $_POST is empty. The problem which arises here is if a form posts to an source path rather than the alias. GlobalRedirect sometimes interrupts the post and redirects to the alias instead.
+   *   1) If the 'drupal_get_path' function exists. Sometimes hook_init gets
+   *      called twice, the first call hasn't included path.inc.
+   *   2) If there is a request. There is no point checking the REAL frontpage
+   *      for an alias.
+   *   3) If the $_POST is empty. The problem which arises here is if a form
+   *      posts to an source path rather than the alias. GlobalRedirect
+   *      sometimes interrupts the post and redirects to the alias instead.
    */
 
   if (function_exists('drupal_get_path_alias') &&
@@ -69,13 +79,15 @@ function globalredirect_init() {
 
     // If menu checking is enabled, do the check. Feature disabled by default.
     if ($menu_check == GLOBALREDIRECT_MENU_CHECK_ENABLED) {
-      // Check the access on the current path, return FALSE if access not allowed. This stops redirection for paths without access permission.
+      // Check the access on the current path, return FALSE if access not
+      // allowed. This stops redirection for paths without access permission.
       $item = menu_get_item();
       _menu_check_access($item, isset($item['map']) ? $item['map'] : array());
       if (!$item['access']) return FALSE;
     }
 
-    // Store the destination from the $_REQUEST as it breaks things if we leave it in - restore it at the end...
+    // Store the destination from the $_REQUEST as it breaks things if we leave
+    // it in - restore it at the end...
     if (isset($_REQUEST['destination'])) {
       $destination = $_REQUEST['destination'];
       unset($_REQUEST['destination']);
@@ -87,10 +99,12 @@ function globalredirect_init() {
       $query_string = NULL;
     }
 
-    // Establish the language prefix that should be used, ie. the one that drupal_goto() would use
+    // Establish the language prefix that should be used, ie. the one that
+    // drupal_goto() would use
     $options = array('prefix' => '');
     if (function_exists('language_url_rewrite')) {
-      // Note that language_url_rewrite() takes path (by reference) as the first argument but does not use it at all
+      // Note that language_url_rewrite() takes path (by reference) as the
+      // first argument but does not use it at all
       $path = $_REQUEST['q'];
       language_url_rewrite($path, $options);
     }
@@ -99,11 +113,13 @@ function globalredirect_init() {
 
     // Do a check if this is a frontpage
     if (drupal_is_front_page()) {
-      // Redirect if the current request does not refer to the frontpage in the configured fashion (with or without a prefix)
+      // Redirect if the current request does not refer to the frontpage in the
+      // configured fashion (with or without a prefix)
       if ($_REQUEST['q'] != $prefix) {
         drupal_goto('', $query_string, NULL, 301);
       }
-      // If we've got to this point then we're on a frontpage with a VALID request path (such as a language-prefix frontpage such as '/de')
+      // If we've got to this point then we're on a frontpage with a VALID
+      // request path (such as a language-prefix frontpage such as '/de')
       return;
     }
 
@@ -133,7 +149,8 @@ function globalredirect_init() {
       $prefix .= '/';
     }
 
-    // Alias case sensitivity check. If there is an alias from the previous lookup, do a query to test for case.
+    // Alias case sensitivity check. If there is an alias from the previous
+    // lookup, do a query to test for case.
     if ($alias && variable_get('globalredirect_case_sensitive_urls', GLOBALREDIRECT_CASE_SENSITIVE_URLS_ENABLED) == GLOBALREDIRECT_CASE_SENSITIVE_URLS_ENABLED) {
       $alias_sensitive = db_query('SELECT alias FROM {url_alias} WHERE alias = :alias', array(':alias' => $alias))->fetchField();
       if ($alias_sensitive && $alias != $alias_sensitive) {
@@ -142,7 +159,8 @@ function globalredirect_init() {
       }
     }
 
-    // Compare the request to the alias. This also works as a 'deslashing' agent. If we have a language prefix then prefix the alias
+    // Compare the request to the alias. This also works as a 'deslashing'
+    // agent. If we have a language prefix then prefix the alias
     if ($_REQUEST['q'] != $prefix . $alias) {
       // If it's not just a slash or user has deslash on, redirect
       if (str_replace($prefix . $alias, '', $_REQUEST['q']) != '/' || $redirect_slash) {
@@ -150,7 +168,8 @@ function globalredirect_init() {
       }
     }
 
-    // If no alias was returned, the final check is to direct non-clean to clean - if clean is enabled
+    // If no alias was returned, the final check is to direct non-clean to
+    // clean - if clean is enabled
     if ((variable_get('globalredirect_nonclean2clean', GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) == GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) && ((bool)variable_get('clean_url', 0)) && strpos(request_uri(), '?q=')) {
       drupal_goto($alias, array('query' => $query_string), 301);
     }
@@ -162,21 +181,17 @@ function globalredirect_init() {
 
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function globalredirect_menu() {
-  $items = array();
-
   $items['admin/config/system/globalredirect'] = array(
     'title' => 'Global Redirect',
     'description' => 'Chose which features you would like enabled for Global Redirect',
-    'access callback' => 'user_access',
-    'access arguments' => array('administer site configuration'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('globalredirect_settings'),
+    'access arguments' => array('administer site configuration'),
     'file' => 'globalredirect.admin.inc',
   );
 
   return $items;
 }
-
