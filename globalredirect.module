@@ -105,7 +105,14 @@ function globalredirect_init() {
 
     // Establish the language prefix that should be used, ie. the one that
     // drupal_goto() would use
-    $options = array('prefix' => '');
+    $options = array(
+      'fragment' => '',
+      'query' => array(),
+      'absolute' => FALSE,
+      'alias' => FALSE,
+      'prefix' => '',
+      'external' => FALSE,
+    );
     if (function_exists('language_url_rewrite')) {
       // Note that language_url_rewrite() takes path (by reference) as the
       // first argument but does not use it at all
@@ -185,7 +192,6 @@ function globalredirect_init() {
     if (isset($destination)) $_REQUEST['destination'] = $destination;
   }
 }
-
 
 /**
  * Implements hook_menu().
