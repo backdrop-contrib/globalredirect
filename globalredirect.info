@@ -6,3 +6,4 @@ files[] = globalredirect.module
 files[] = globalredirect.install
 files[] = globalredirect.admin.inc
 files[] = globalredirect.test
+configure = admin/config/system/globalredirect
