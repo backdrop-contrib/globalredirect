@@ -7,13 +7,12 @@
  * are not using the aliases which reduces the risk of duplicate content.
  */
 
-
 /**
  * Implements hook_help().
  */
-function globalredirect_help($section) {
-  switch ($section) {
-    case 'admin/modules#description':
+function globalredirect_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#globalredirect':
       return t('This module will do a 301 redirect for all nodes which have an alias but are not using that alias.');
   }
 }
@@ -31,17 +30,19 @@ function globalredirect_init() {
 
   // If GlobalRedirect is inactive (for any of the reasons listed in
   // _globalredirect_is_active()) then skip the rest of the function.
-  if (!_globalredirect_is_active($settings)) return FALSE;
-
+  if (!_globalredirect_is_active($settings)) {
+    return FALSE;
+  }
 
   // If menu checking is enabled, do the check. Note: Feature disabled by default.
   if ($settings['menu_check']) {
     // Check the access on the current path, return FALSE if access not
     // allowed. This stops redirection for paths without access permission.
     $item = menu_get_item();
-    if (!$item['access']) return FALSE;
+    if (!$item['access']) {
+      return FALSE;
+    }
   }
-
 
   // Store the destination from the $_REQUEST as it breaks things if we leave
   // it in - restore it at the end...
@@ -50,13 +51,11 @@ function globalredirect_init() {
     unset($_GET['destination']);
   }
 
-
   // Get the Query String (minus the 'q'). If none set, set to NULL
   $query_string = drupal_get_query_parameters($_GET, array('q'));
   if (empty($query_string)) {
     $query_string = NULL;
   }
-
 
   // Establish the language prefix that should be used, ie. the one that
   // drupal_goto() would use
@@ -78,7 +77,6 @@ function globalredirect_init() {
   }
   $prefix = rtrim($options['prefix'], '/');
 
-
   // Do a check if this is a front page
   if (drupal_is_front_page()) {
     // Redirect if the current request does not refer to the front page in the
@@ -95,7 +93,6 @@ function globalredirect_init() {
     // request path (such as a language-prefix front page such as '/de')
     return;
   }
-
 
   // Trim any trailing slash off the end (eg, 'node/1/' to 'node/1')
   $request = $settings['deslash'] ? trim($_GET['q'], '/') : $_GET['q'];
@@ -114,7 +111,6 @@ function globalredirect_init() {
       }
   }
 
-
   // If the feature is enabled, check and redirect taxonomy/term/* requests to their proper handler defined by hook_term_path().
   if ($settings['term_path_handler'] && module_exists('taxonomy') && preg_match('/taxonomy\/term\/([0-9]+)$/', $request, $matches)) {
     // So the feature is enabled, as is taxonomy module and the current request is a taxonomy term page.
@@ -126,7 +122,6 @@ function globalredirect_init() {
       $request = $term_path['path'];
     }
   }
-
 
   // If Content Translation module is enabled then check the path is correct.
   if ($settings['language_redirect'] && module_exists('translation') && (arg(0) == 'node') && is_numeric(arg(1)) && (arg(2) == '')) {
@@ -174,8 +169,6 @@ function globalredirect_init() {
     }
   }
 
-
-
   // Find an alias (if any) for the request
   $langcode = isset($options['language']->language) ? $options['language']->language : '';
   $alias = drupal_get_path_alias($request, $langcode);
@@ -189,7 +182,6 @@ function globalredirect_init() {
     $prefix .= '/';
   }
 
-
   // Alias case sensitivity check.
   // NOTE: This has changed. In D6 the $alias matched the request (in terms of case), however in D7 $alias is already a true alias (accurate in case), and therefore not the "true" request...
   // So, if the alias and the request path are case-insensitive the same then, if Case Senitive URL's are enabled, the alias SHOULD be the accurate $alias from above, otherwise it should be the request_path()...
@@ -198,7 +190,6 @@ function globalredirect_init() {
     // The alias and the request are identical (case insensitive)... Therefore...
     $alias = $settings['case_sensitive_urls'] ? $alias : request_path();
   }
-
 
   // Compare the request to the alias. This also works as a 'deslashing'
   // agent. If we have a language prefix then prefix the alias
@@ -209,17 +200,16 @@ function globalredirect_init() {
     }
   }
 
-
   // If no alias was returned, the final check is to direct non-clean to
   // clean - if clean is enabled
   if ($settings['nonclean_to_clean'] && ((bool)variable_get('clean_url', 0)) && strpos(request_uri(), '?q=')) {
     drupal_goto($request, $options, 301);
   }
 
-
   // Restore the destination from earlier so its available in other places.
-  if (isset($destination)) $_GET['destination'] = $destination;
-
+  if (isset($destination)) {
+    $_GET['destination'] = $destination;
+  }
 
   // Add the canonical link to the head of the document if desired.
   // TODO - The Canonical already gets set by Core for node page views... See http://api.drupal.org/api/function/node_page_view/7
@@ -300,7 +290,6 @@ function _globalredirect_is_active($settings) {
     return FALSE;
   }
 
-
   /**
    * If drupal_get_path_alias isn't preset, GlobalRedirect is not active
    */
@@ -320,7 +309,6 @@ function _globalredirect_is_active($settings) {
    */
   return TRUE;
 }
-
 
 /**
  * Return the settings with any defaults mapped over the top
