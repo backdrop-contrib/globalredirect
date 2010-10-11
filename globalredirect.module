@@ -252,15 +252,6 @@ function globalredirect_menu() {
   return $items;
 }
 
-
-/**
- * Drupal 6 backport of drupal_is_cli().
- */
-function globalredirect_is_cli() {
-  return (!isset($_SERVER['SERVER_SOFTWARE']) && (PHP_SAPI == 'cli' || (is_numeric($_SERVER['argc']) && $_SERVER['argc'] > 0)));
-}
-
-
 /**
  * Internal function to determine if GlobalRedirect is active.
  * Several rules have to be checked prior to execution, such as an empty post array,
@@ -276,16 +267,16 @@ function _globalredirect_is_active($settings) {
    * @see http://drupal.org/node/205810
    * @see http://drupal.org/node/278615
    */
-  if ($_SERVER['SCRIPT_NAME'] != $GLOBALS['base_path'] . 'index.php') return FALSE;
-
+  if ($_SERVER['SCRIPT_NAME'] != $GLOBALS['base_path'] . 'index.php') {
+    return FALSE;
+  }
 
   /**
    * If this is a command line request (Drush, etc), skip processing.
    */
-  if (globalredirect_is_cli()) {
+  if (drupal_is_cli()) {
     return FALSE;
   }
-
 
   /**
    * Check if the request is an attempted url mask
@@ -294,31 +285,35 @@ function _globalredirect_is_active($settings) {
     return FALSE;
   }
 
-
   /**
    * If the site is in offline mode there is little point doing any of this as
    * you might end up redirecting to a 503.
    */
-  if (variable_get('site_offline', 0) == 1) return FALSE;
-
+  if (variable_get('maintenance_mode', 0)) {
+    return FALSE;
+  }
 
   /**
    * If there is something posted, GlobalRedirect is not active
    */
-  if (!empty($_POST)) return FALSE;
+  if (!empty($_POST)) {
+    return FALSE;
+  }
 
 
   /**
    * If drupal_get_path_alias isn't preset, GlobalRedirect is not active
    */
-  if (!function_exists('drupal_get_path_alias')) return FALSE;
-
+  if (!function_exists('drupal_get_path_alias')) {
+    return FALSE;
+  }
 
   /**
    * If menu_check is enabled AND the menu_get_item function is missing, GlobalRedirect is disabled
    */
-  if ($settings['menu_check'] && !function_exists('menu_get_item')) return FALSE;
-
+  if ($settings['menu_check'] && !function_exists('menu_get_item')) {
+    return FALSE;
+  }
 
   /**
    * We seem to have passed all the tests - let say we're active
