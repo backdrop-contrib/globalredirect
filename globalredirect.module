@@ -18,7 +18,6 @@ function globalredirect_help($section) {
   }
 }
 
-
 /**
  * Implements hook_init().
  */
@@ -46,9 +45,9 @@ function globalredirect_init() {
 
   // Store the destination from the $_REQUEST as it breaks things if we leave
   // it in - restore it at the end...
-  if (isset($_REQUEST['destination'])) {
-    $destination = $_REQUEST['destination'];
-    unset($_REQUEST['destination']);
+  if (isset($_GET['destination'])) {
+    $destination = $_GET['destination'];
+    unset($_GET['destination']);
   }
 
 
@@ -100,8 +99,6 @@ function globalredirect_init() {
 
   // Trim any trailing slash off the end (eg, 'node/1/' to 'node/1')
   $request = $settings['deslash'] ? trim($_GET['q'], '/') : $_GET['q'];
-
-
   // Optional stripping of "/0". Disabled by default.
   switch ($settings['trailing_zero']) {
     case 2 :
@@ -221,7 +218,7 @@ function globalredirect_init() {
 
 
   // Restore the destination from earlier so its available in other places.
-  if (isset($destination)) $_REQUEST['destination'] = $destination;
+  if (isset($destination)) $_GET['destination'] = $destination;
 
 
   // Add the canonical link to the head of the document if desired.
@@ -233,13 +230,11 @@ function globalredirect_init() {
     ));
   }
 
-
   // Add the Content-Location header to the page
   if ($settings['content_location_header']) {
     drupal_add_http_header('Content-Location', url(drupal_is_front_page() ? '<front>' : $_REQUEST['q'], array('absolute' => TRUE, 'query' => $query_string)));
   }
 }
-
 
 /**
  * Implements hook_menu().
