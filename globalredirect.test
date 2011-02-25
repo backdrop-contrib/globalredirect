@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 define('ERROR_MESSAGE',     'ERROR<br />Expected Path: !expected_path<br />Expected Status Code: !expected_status<br />Location: !location<br />Status: !status');
 define('SUCCESS_MESSAGE', 'SUCCESS<br />Expected Path: !expected_path<br />Expected Status Code: !expected_status<br />Location: !location<br />Status: !status');
