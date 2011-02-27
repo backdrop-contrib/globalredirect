@@ -194,11 +194,11 @@ function globalredirect_init() {
 
   // Alias case sensitivity check.
   // NOTE: This has changed. In D6 the $alias matched the request (in terms of
-  // case).  However in D7 $alias is already a true alias (accurate in case),
-  // and therefore not the "true" request...  So, if the alias and the request
-  // path are case-insensitive the same then, if Case Sensitive URL's are
+  // case). However in D7 $alias is already a true alias (accurate in case),
+  // and therefore not the "true" request. So, if the alias and the request
+  // path are case-insensitive the same then, if case sensitive URL's are
   // enabled, the alias SHOULD be the accurate $alias from above, otherwise it
-  // should be the request_path()...
+  // should be the request_path().
   // TODO: Test if this breaks the language checking above!
   if (strcasecmp($alias, request_path()) == 0) {
     // The alias and the request are identical (case insensitive)... Therefore...
