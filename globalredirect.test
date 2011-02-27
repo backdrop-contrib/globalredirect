@@ -239,13 +239,14 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
 
 class GlobalRedirectTestCaseDefault extends GlobalRedirectTestCase {
-  function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => '1. Global Redirect - Default Settings',
       'description' => 'Ensure that Global Redirect functions correctly',
       'group' => 'Global Redirect',
     );
   }
+
   function testGlobalRedirect() {
     variable_set('globalredirect_settings', array(
       'deslash' => 1,
@@ -260,13 +261,14 @@ class GlobalRedirectTestCaseDefault extends GlobalRedirectTestCase {
 
 
 class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
-  function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => '2. Global Redirect - Config Alpha',
       'description' => 'Ensure that Global Redirect functions correctly',
       'group' => 'Global Redirect',
     );
   }
+
   function testGlobalRedirect() {
     variable_set('globalredirect_settings', array(
       'deslash' => 0,
