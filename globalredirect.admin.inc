@@ -86,9 +86,24 @@ function globalredirect_settings() {
     '#default_value' => $settings['term_path_handler'],
   );
 
+  $form['settings']['frontpage_redirect'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Frontpage Redirect Handler'),
+    '#description' => t('If enabled, any request to the frontpage path (e.g. /node) will redirect to the site root.'),
+    '#default_value' => $settings['frontpage_redirect'],
+  );
 
-  $form['buttons']['submit'] = array('#type' => 'submit', '#submit' => array('globalredirect_settings_submit_save'),  '#value' => t('Save Configuration') );
-  $form['buttons']['reset']  = array('#type' => 'submit', '#submit' => array('globalredirect_settings_submit_reset'), '#value' => t('Reset to defaults') );
+  $form['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#submit' => array('globalredirect_settings_submit_save'),
+    '#value' => t('Save Configuration'),
+  );
+
+  $form['buttons']['reset'] = array(
+    '#type' => 'submit',
+    '#submit' => array('globalredirect_settings_submit_reset'),
+    '#value' => t('Reset to defaults'),
+  );
 
   return $form;
 }

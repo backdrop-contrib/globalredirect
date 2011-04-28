@@ -85,6 +85,11 @@ function globalredirect_init() {
 
   // Do a check if this is a front page
   if (drupal_is_front_page()) {
+    // If frontpage redirection is disabled, halt here
+    if (!$settings['frontpage_redirect']) {
+      return;
+    }
+
     // Redirect if the current request does not refer to the front page in the
     // configured fashion (with or without a prefix)
     if ($request_path != $prefix) {
@@ -339,6 +344,7 @@ function _globalredirect_get_settings($default_only = FALSE) {
     'canonical' => 0,
     'content_location_header' => 0,
     'term_path_handler' => 1,
+    'frontpage_redirect' => 1,
   );
 
   if ($default_only) {
