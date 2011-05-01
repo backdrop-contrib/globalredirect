@@ -188,11 +188,11 @@ function globalredirect_init() {
   $langcode = isset($options['language']->language) ? $options['language']->language : '';
   $alias = drupal_get_path_alias($current_path, $langcode);
 
-  // TODO: This looks wrong for D7... maybe a hook?
-  if (function_exists('custom_url_rewrite_outbound')) {
-    // Modules may alter outbound links by reference.
-    custom_url_rewrite_outbound($alias, $options, $current_path);
-  }
+  // Modules may alter outbound links by reference
+  drupal_alter('url_outbound', $alias, $options, $current_path);
+
+  // If we have a prefix AND an alias, we need to make sure the prefix end with
+  // a slash
   if ($prefix && $alias) {
     $prefix .= '/';
   }
