@@ -89,7 +89,10 @@ function globalredirect_settings() {
   $form['settings']['frontpage_redirect'] = array(
     '#type' => 'checkbox',
     '#title' => t('Frontpage Redirect Handler'),
-    '#description' => t('If enabled, any request to the frontpage path (e.g. /node) will redirect to the site root.'),
+    '#description' => t('If enabled, any request to the frontpage path will redirect to the site root.<br />
+                         Whatever you set as the path of the front page on the !link settings page will redirect to the site root (e.g. "node" or "node/1" and also its alias (e.g. in case you have set "node/1" as your home page but that page also has an alias "home")).', array(
+      '!link' => l(t('Site Information'), 'admin/settings/site-information'),
+    )),
     '#default_value' => $settings['frontpage_redirect'],
   );
 
