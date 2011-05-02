@@ -139,30 +139,33 @@ function globalredirect_init() {
   }
 
   // If Content Translation module is enabled then check the path is correct.
-  if ($settings['language_redirect'] && module_exists('translation') && (arg(0) == 'node') && is_numeric(arg(1)) && (arg(2) == '')) {
-    switch (variable_get('language_negotiation', LANGUAGE_NEGOTIATION_NONE)) {
-      case LANGUAGE_NEGOTIATION_PATH_DEFAULT:
-      case LANGUAGE_NEGOTIATION_PATH:
+  if ($settings['language_redirect'] && module_exists('translation') && preg_match('/node\/([0-9]+)$/', $current_path, $matches)) {
+    switch (variable_get('locale_language_negotiation_url_part', LOCALE_LANGUAGE_NEGOTIATION_URL_PREFIX)) {
+      case LOCALE_LANGUAGE_NEGOTIATION_URL_PREFIX:
         // Check if there's a translation for the current language of the requested node...
-        $node_translations = translation_path_get_translations('node/' . arg(1));
+        // $matches[0] is the entire matches path from above
+        $node_translations = translation_path_get_translations($matches[0]);
+
         // If there is, go to the translation.
-        if (!empty($node_translations[$language->language]) && $node_translations[$language->language] != 'node/' . arg(1)) {
+        if (!empty($node_translations[$language->language]) && $node_translations[$language->language] != $matches[0]) {
           drupal_goto($node_translations[$language->language], $options, 301);
         }
-        // If there is no translation, change the language to fit the content!
+        // If there is no translation, change the language to fit the content
         else {
-          $node = node_load(arg(1));
-          if (!empty($node->language) && $node->language != $language->language) {
+          $node = node_load($matches[1]);
+          // Check the node has a language set, that it isn't "NONE" (und) and that it dosn't match the site's current language
+          if (isset($node->language) && $node->language != LANGUAGE_NONE && $node->language != $language->language) {
             $all_languages = language_list();
+            // TODO: Is it possible to get here with a node in a language not in $all_languages?
             // Change the global $language's prefix, to make drupal_goto()
             // follow the proper prefix
-            $language = $all_languages[$node->language];
+            $options['language'] = $language = $all_languages[$node->language];
             drupal_goto('node/' . $node->nid, $options, 301);
           }
         }
         break;
 
-      case LANGUAGE_NEGOTIATION_DOMAIN:
+      case LOCALE_LANGUAGE_NEGOTIATION_URL_DOMAIN:
         // Let's check is there other languages on site.
         $all_languages = language_list();
         if (count($all_languages) > 1) {

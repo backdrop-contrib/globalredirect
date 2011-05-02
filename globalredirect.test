@@ -12,21 +12,30 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
 
   function setUp() {
-    parent::setUp('path', 'globalredirect', 'taxonomy', 'forum');
+    // Install modules needed for this test. This could have been passed in as
+    // either a single array argument or a variable number of string arguments.
+    $modules = func_get_args();
+    if (isset($modules[0]) && is_array($modules[0])) {
+      $modules = $modules[0];
+    }
+    $modules = array_merge($modules, array('path', 'globalredirect', 'taxonomy', 'forum'));
+    parent::setUp($modules);
+    $this->assert('pass', 'Modules Enabled: <pre>' . print_r($modules, TRUE) . '</pre>');
 
     // Create a user
-    $user = $this->drupalCreateUser(array(
+    $this->normal_user = $this->drupalCreateUser(array(
       'access content',
       'create page content',
       'create url aliases',
     ));
-    $this->drupalLogin($user);
+    $this->drupalLogin($this->normal_user);
 
     // Create a dummy node
     $node = array(
       'type' => 'page',
       'title' => 'Test Page Node',
       'path' => array('alias' => 'test-node'),
+      'language' => LANGUAGE_NONE,
     );
 
     // Save the node
@@ -70,7 +79,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
 
 
-  protected function _globalredirect_batch_test() {
+  protected function _globalredirect_test_paths() {
     // Get the settings
     $settings = _globalredirect_get_settings();
     $this->assert('pass', '<pre>' . print_r($settings, TRUE) . '</pre>');
@@ -78,7 +87,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
     // Array of request => "array of expected data" pairs.
     // The array must have a return-code key (with a numeric HTTP code as a value (eg 301 or 200).
     // The array may also have an expected-path key with a value representing the expected path. If this is ommitted, the request is passed through url().
-    $test_paths = array(
+    return array(
       // "" is the frontpage. Should NOT redirect. -- Test for normal requests
       array(
         'request' => '',
@@ -162,7 +171,13 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
         'expected-path' => $settings['trailing_zero'] > 0 ? 'test-term' : 'taxonomy/term/2/0',
       ),
     );
+  }
 
+
+  protected function _globalredirect_batch_test() {
+    // Get the test paths
+    $test_paths = $this->_globalredirect_test_paths();
+    $this->assert('pass', '<pre>' . print_r($test_paths, TRUE) . '</pre>');
 
     // Foreach of the above, lets check they redirect correctly
     foreach ($test_paths as $path) {
@@ -282,5 +297,186 @@ class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
     ));
 
     $this->_globalredirect_batch_test();
+  }
+}
+
+
+class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => '2. Global Redirect - Languages',
+      'description' => 'Ensure that Global Redirect functions correctly when locales are used',
+      'group' => 'Global Redirect',
+    );
+  }
+
+  protected function _globalredirect_test_paths() {
+    $settings = _globalredirect_get_settings();
+
+    $paths = parent::_globalredirect_test_paths();
+
+    // "node/1" has been defined as having an alias ("test-node") and Language NONE. Should 301 redirect to the alias. --- Test for source path request on aliased path
+    $paths[] = array(
+      'request' => 'fr/node/1',
+      'return-code' => 301,
+      'expected-path' => 'fr/test-node',
+    );
+
+    $paths[] = array(
+      'request' => 'node/2',
+      'return-code' => 301,
+      'expected-path' => 'test-english-node',
+    );
+
+    $paths[] = array(
+      'request' => 'node/3',
+      'return-code' => 301,
+      'expected-path' => 'test-english-node',
+    );
+
+    $paths[] = array(
+      'request' => 'fr/node/3',
+      'return-code' => 301,
+      'expected-path' => 'fr/test-french-node',
+    );
+
+
+    $paths[] = array(
+      'request' => 'fr/node/4',
+      'return-code' => 301,
+      'expected-path' => 'fr/test-french-node',
+    );
+
+    $paths[] = array(
+      'request' => 'de/node/3',
+      'return-code' => 301,
+      'expected-path' => 'de/test-german-node',
+    );
+
+    return $paths;
+  }
+
+
+  function setUp() {
+    parent::setUp('locale', 'translation');
+
+    $this->admin_user = $this->drupalCreateUser(array('bypass node access', 'administer nodes', 'administer languages', 'administer content types', 'administer blocks', 'access administration pages'));
+    $this->drupalLogin($this->admin_user);
+
+    $this->addLanguage('fr');
+    $this->addLanguage('de');
+
+    $this->drupalGet('admin/structure/types/manage/page');
+    $edit = array();
+    $edit['language_content_type'] = 2;
+    $this->drupalPost('admin/structure/types/manage/page', $edit, t('Save content type'));
+    $this->assertRaw(t('The content type %type has been updated.', array('%type' => 'Basic page')), t('Basic page content type has been updated.'));
+
+    // Enable URL language detection and selection
+    $edit = array('language[enabled][locale-url]' => TRUE);
+    $this->drupalPost('admin/config/regional/language/configure', $edit, t('Save settings'));
+    $this->assertRaw(t('Language negotiation configuration saved.'), t('URL language detection enabled.'));
+    drupal_static_reset('locale_url_outbound_alter');
+
+
+    // Create a dummy english node
+    $node = array(
+      'type' => 'page',
+      'title' => 'Test English Page Node',
+      'path' => array('alias' => 'test-english-node'),
+      'language' => 'en',
+      'tnid' => 2,
+      'body' => array('en' => array(array())),
+    );
+
+    // Save the node
+    $node = $this->drupalCreateNode($node);
+
+
+    // Create a second dummy node (first made in the parent::setUp())
+    // Set it as a translation of the first node
+    $node = array(
+      'type' => 'page',
+      'title' => 'Test French Page Node',
+      'path' => array('alias' => 'test-french-node'),
+      'language' => 'fr',
+      'tnid' => 2,
+      'body' => array('fr' => array(array())),
+    );
+
+    // Save the node
+    $node = $this->drupalCreateNode($node);
+
+
+
+    // Create a second dummy node (first made in the parent::setUp())
+    // Set it as a translation of the first node
+    $node = array(
+      'type' => 'page',
+      'title' => 'Test German Page Node',
+      'path' => array('alias' => 'test-german-node'),
+      'language' => 'de',
+      'tnid' => 2,
+      'body' => array('de' => array(array())),
+    );
+
+    // Save the node
+    $node = $this->drupalCreateNode($node);
+
+
+
+
+
+
+
+  }
+
+  function testGlobalRedirect() {
+    variable_set('globalredirect_settings', array(
+      'language_redirect' => 1,
+    ));
+
+
+    $this->_globalredirect_batch_test();
+  }
+
+
+  /**
+   * NOTE: Borrowed from translation.test
+   * Install a the specified language if it has not been already. Otherwise make sure that
+   * the language is enabled.
+   *
+   * @param $language_code
+   *   The language code the check.
+   */
+  function addLanguage($language_code) {
+    // Check to make sure that language has not already been installed.
+    $this->drupalGet('admin/config/regional/language');
+
+    if (strpos($this->drupalGetContent(), 'enabled[' . $language_code . ']') === FALSE) {
+      // Doesn't have language installed so add it.
+      $edit = array();
+      $edit['langcode'] = $language_code;
+      $this->drupalPost('admin/config/regional/language/add', $edit, t('Add language'));
+
+      // Make sure we are not using a stale list.
+      drupal_static_reset('language_list');
+      $languages = language_list('language');
+      $this->assertTrue(array_key_exists($language_code, $languages), t('Language was installed successfully.'));
+
+      if (array_key_exists($language_code, $languages)) {
+        $this->assertRaw(t('The language %language has been created and can now be used. More information is available on the <a href="@locale-help">help screen</a>.', array('%language' => $languages[$language_code]->name, '@locale-help' => url('admin/help/locale'))), t('Language has been created.'));
+      }
+    }
+    elseif ($this->xpath('//input[@type="checkbox" and @name=:name and @checked="checked"]', array(':name' => 'enabled[' . $language_code . ']'))) {
+      // It's installed and enabled. No need to do anything.
+      $this->assertTrue(true, 'Language [' . $language_code . '] already installed and enabled.');
+    }
+    else {
+      // It's installed but not enabled. Enable it.
+      $this->assertTrue(true, 'Language [' . $language_code . '] already installed.');
+      $this->drupalPost(NULL, array('enabled[' . $language_code . ']' => TRUE), t('Save configuration'));
+      $this->assertRaw(t('Configuration saved.'), t('Language successfully enabled.'));
+    }
   }
 }
