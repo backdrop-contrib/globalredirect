@@ -42,7 +42,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
     $node = $this->drupalCreateNode($node);
 
     // Create an alias for the create story path - this is used in the "redirect with permissions testing" test.
-    $path = array('source' => 'node/add/article', 'alias' => 'node-add-artice');
+    $path = array('source' => 'node/add/article', 'alias' => 'node-add-article');
     path_save($path);
 
 
