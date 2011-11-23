@@ -53,16 +53,12 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
     );
     taxonomy_term_save($forum_term);
 
-
-
     // Create another test vocab (with a default module) - should be vocab 2?
     $vocab = (object)array(
       'name' => 'test vocab',
-      'multiple' => 0,
-      'required' => 0,
+      'machine_name' => 'test-vocab',
       'hierarchy' => 0,
       'module' => 'taxonomy',
-      'nodes' => array('page', 'story'),
     );
     taxonomy_vocabulary_save($vocab);
     $vocab = taxonomy_vocabulary_load($vocab->vid, TRUE);
