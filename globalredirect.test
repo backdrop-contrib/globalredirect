@@ -11,16 +11,15 @@ define('SUCCESS_MESSAGE', 'SUCCESS<br />Expected Path: !expected_path<br />Expec
 class GlobalRedirectTestCase extends DrupalWebTestCase {
 
 
-  function setUp() {
-    // Install modules needed for this test. This could have been passed in as
-    // either a single array argument or a variable number of string arguments.
-    $modules = func_get_args();
-    if (isset($modules[0]) && is_array($modules[0])) {
-      $modules = $modules[0];
-    }
-    $modules = array_merge($modules, array('path', 'globalredirect', 'taxonomy', 'forum'));
+  function setUp(array $modules = array()) {
+    $modules[] = 'path';
+    $modules[] = 'globalredirect';
+    $modules[] = 'taxonomy';
+    $modules[] = 'forum';
     parent::setUp($modules);
-    $this->assert('pass', 'Modules Enabled: <pre>' . print_r($modules, TRUE) . '</pre>');
+
+    // Clean URLs should be enabled for testing.
+    variable_set('clean_url', 1);
 
     // Create a user
     $this->normal_user = $this->drupalCreateUser(array(
@@ -353,8 +352,8 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
   }
 
 
-  function setUp() {
-    parent::setUp('locale', 'translation');
+  function setUp(array $modules = array()) {
+    parent::setUp(array('locale', 'translation'));
 
     $this->admin_user = $this->drupalCreateUser(array('bypass node access', 'administer nodes', 'administer languages', 'administer content types', 'administer blocks', 'access administration pages'));
     $this->drupalLogin($this->admin_user);
