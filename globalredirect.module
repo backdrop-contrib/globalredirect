@@ -139,7 +139,7 @@ function globalredirect_init() {
   }
 
   // If Content Translation module is enabled then check the path is correct.
-  if ($settings['language_redirect'] && module_exists('translation') && preg_match('/node\/([0-9]+)$/', $current_path, $matches)) {
+  if ($settings['language_redirect'] && module_exists('translation') && preg_match('/node\/([0-9]+)(\/.+|)$/', $current_path, $matches)) {
     switch (variable_get('locale_language_negotiation_url_part', LOCALE_LANGUAGE_NEGOTIATION_URL_PREFIX)) {
       case LOCALE_LANGUAGE_NEGOTIATION_URL_PREFIX:
         // Check if there's a translation for the current language of the requested node...
@@ -160,7 +160,7 @@ function globalredirect_init() {
             // Change the global $language's prefix, to make drupal_goto()
             // follow the proper prefix
             $options['language'] = $language = $all_languages[$node->language];
-            globalredirect_goto('node/' . $node->nid, $options);
+            globalredirect_goto('node/' . $node->nid . $matches[2], $options);
           }
         }
         break;

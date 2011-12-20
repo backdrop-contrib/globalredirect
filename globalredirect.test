@@ -347,35 +347,59 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
       'expected-path' => 'fr/test-node',
     );
 
+    // "node/2" is english - should plainly redirect to an alias
     $paths[] = array(
       'request' => 'node/2',
       'return-code' => 301,
       'expected-path' => 'test-english-node',
     );
 
+    // Node 3 is french. As no language prefix is provided, should redirect to the english version
     $paths[] = array(
       'request' => 'node/3',
       'return-code' => 301,
       'expected-path' => 'test-english-node',
     );
 
+    // Now we're requesting a french node using the french language - redirect to the nodes alias with french prefix
     $paths[] = array(
       'request' => 'fr/node/3',
       'return-code' => 301,
       'expected-path' => 'fr/test-french-node',
     );
 
-
+    // Node 4 is german - requesting under french prefix. Redirect to french node
     $paths[] = array(
       'request' => 'fr/node/4',
       'return-code' => 301,
       'expected-path' => 'fr/test-french-node',
     );
 
+    // Node 3 is french, requesting with german prefix. Should redirect to the german node with german prefix.
     $paths[] = array(
       'request' => 'de/node/3',
       'return-code' => 301,
       'expected-path' => 'de/test-german-node',
+    );
+
+    // Requesting to edit the french node on the english site. Should redirect to the english node edit
+    $paths[] = array(
+      'request' => 'node/3/edit',
+      'return-code' => 301,
+      'expected-path' => 'node/2/edit',
+    );
+
+    // Requesting to edit the english node on the french site - should redirect to edit the french node
+    $paths[] = array(
+      'request' => 'fr/node/2/edit',
+      'return-code' => 301,
+      'expected-path' => 'fr/node/3/edit',
+    );
+
+    // Requesting to edit the german node on the german site. Should return a 200...
+    $paths[] = array(
+      'request' => 'de/node/4/edit',
+      'return-code' => 200,
     );
 
     return $paths;
