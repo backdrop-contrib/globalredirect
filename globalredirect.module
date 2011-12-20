@@ -236,7 +236,7 @@ function globalredirect_init() {
   // Add the canonical link to the head of the document if desired.
   // TODO - The Canonical already gets set by Core for node page views... See http://api.drupal.org/api/function/node_page_view/7
   if ($settings['canonical']) {
-     drupal_add_html_head_link(array(
+    drupal_add_html_head_link(array(
       'rel' => 'canonical',
       'href' => url(drupal_is_front_page() ? '<front>' : $request_path, array('absolute' => TRUE, 'query' => $query_string)),
     ));
@@ -267,7 +267,7 @@ function globalredirect_goto($path = '', array $options = array(), $http_respons
  */
 function globalredirect_url_is_external($path) {
   $colonpos = strpos($path, ':');
-  return $colonpos !== FALSE && !preg_match('![/?#]!', substr($path, 0, $colonpos));
+  return $colonpos !== FALSE && !preg_match('![/?#]!', drupal_substr($path, 0, $colonpos));
 }
 
 /**
@@ -384,9 +384,9 @@ function globalredirect_request_path() {
     else {
       // This is a request using a clean URL. Extract the path from REQUEST_URI.
       $request_path = strtok($_SERVER['REQUEST_URI'], '?');
-      $base_path_len = strlen(rtrim(dirname($_SERVER['SCRIPT_NAME']), '\/'));
+      $base_path_len = drupal_strlen(rtrim(dirname($_SERVER['SCRIPT_NAME']), '\/'));
       // Unescape and strip $base_path prefix, leaving q without a leading slash.
-      $path = substr(urldecode($request_path), $base_path_len + 1);
+      $path = drupal_substr(urldecode($request_path), $base_path_len + 1);
     }
   }
   else {
