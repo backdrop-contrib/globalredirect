@@ -133,11 +133,41 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
         'expected-path' => $settings['nonclean_to_clean'] ? 'node/add/page' : '?q=node/add/page',
       ),
 
+      // Ensure that the NonClean to Clean with an external URL does not redirect.
+      array(
+        'request' => url('<front>', array('absolute' => TRUE)),
+        'options' => array('query' => array('q' => 'http://www.example.com'), 'external' => TRUE),
+        'return-code' => 404,
+      ),
+      array(
+        'request' => url('<front>', array('absolute' => TRUE)),
+        'options' => array('query' => array('q' => 'http://www.example.com/'), 'external' => TRUE),
+        'return-code' => 404,
+      ),
+      // Also test un-escaped query strings with external URLs.
+      array(
+        'request' => url('<front>', array('absolute' => TRUE)) . '?q=http://www.example.com',
+        'options' => array('external' => TRUE),
+        'return-code' => 404,
+      ),
+      array(
+        'request' => url('<front>', array('absolute' => TRUE)) . '?q=http://www.example.com/',
+        'options' => array('external' => TRUE),
+        'return-code' => 404,
+      ),
+      // Test with external URLs in the destination query string.
+      array(
+        'request' => 'node/1',
+        'options' => array('query' => array('destination' => 'http://www.example.com/')),
+        'return-code' => 301,
+        'expected-path' => 'test-node',
+      ),
+
       // Case Sensitive URL Check --- This may or may not redirect, depending on the state of case_sensitive_urls as we're requesting an aliased path in the wrong case
       array(
         'request' => 'Test-Node',
         'options' => array('external' => TRUE),
-        'return-code' => $settings['case_sensitive_urls'] ? 301 : 200,
+        'return-code' => $settings['case_sensitive_urls'] ? (db_driver() == 'sqlite' ? 404 : 301) : (db_driver() == 'sqlite' ? 404 : 200), // SQLite cannot return case-insensitive rows.
         'expected-path' => $settings['case_sensitive_urls'] ? 'test-node' : 'Test-Node',
       ),
 
