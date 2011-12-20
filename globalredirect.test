@@ -10,6 +10,9 @@ define('SUCCESS_MESSAGE', 'SUCCESS<br />Expected Path: !expected_path<br />Expec
 
 class GlobalRedirectTestCase extends DrupalWebTestCase {
 
+  private $gr_forum_term;
+  private $gr_term;
+
 
   function setUp(array $modules = array()) {
     $modules[] = 'path';
@@ -51,6 +54,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
       'name' => 'Test Forum Term',
     );
     taxonomy_term_save($forum_term);
+    $this->gr_forum_term = taxonomy_term_load($forum_term->tid);
 
     // Create another test vocab (with a default module) - should be vocab 2?
     $vocab = (object)array(
@@ -69,7 +73,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
       'path' => array('alias' => 'test-term'),
     );
     taxonomy_term_save($term);
-    $term = taxonomy_term_load($term->tid);
+    $this->gr_term = taxonomy_term_load($term->tid);
   }
 
 
@@ -174,9 +178,9 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
       // Term Path Handler Check --- This may or may not redirect, depending on the state of term_path_handler as we're requesting an aliased path with the wrong source
       array(
-        'request' => 'taxonomy/term/1', // TODO: WE're assumeing term 1 is the forum tid created in setUp() - bad?
+        'request' => 'taxonomy/term/' . $this->gr_forum_term->tid, // TODO: WE're assumeing term 1 is the forum tid created in setUp() - bad?
         'return-code' => $settings['term_path_handler'] ? 301 : 200,
-        'expected-path' => $settings['term_path_handler'] ? 'forum/1' : 'taxonomy/term/1',
+        'expected-path' => $settings['term_path_handler'] ? 'forum/' . $this->gr_forum_term->tid : 'taxonomy/term/' . $this->gr_forum_term->tid,
       ),
 
 
@@ -191,16 +195,16 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
       // Trailing Zero Check --- This may or may not redirect, depending on the state of trailing_zero, as we're requesting an aliased path with a trailing zero source
       // If not disabled, then we should trim from taxonomy/term/1/0
       array(
-        'request' => 'taxonomy/term/2/0',
+        'request' => 'taxonomy/term/' . $this->gr_term->tid . '/0',
         'return-code' => $settings['trailing_zero'] > 0 ? 301 : 200,
-        'expected-path' => $settings['trailing_zero'] > 0 ? 'test-term' : 'taxonomy/term/2/0',
+        'expected-path' => $settings['trailing_zero'] > 0 ? 'test-term' : 'taxonomy/term/' .  $this->gr_term->tid . '/0',
       ),
 
-      // Regression test for http://drupal.org/node/867654
+      // Regression test for http://drupal.org/node/867654 - term 10 does not exist
       array(
         'request' => 'taxonomy/term/10/0',
-        'return-code' => $settings['trailing_zero'] ? 301 : 404, // Term 10 does not exist in testing.
-        'expected-path' => $settings['trailing_zero'] ? 'taxonomy/term/10' : 'taxonomy/term/10/0',
+        'return-code' => $settings['trailing_zero'] > 0 ? 301 : 404, // Term 10 does not exist in testing.
+        'expected-path' => $settings['trailing_zero'] > 0 ? 'taxonomy/term/10' : 'taxonomy/term/10/0',
       ),
     );
   }
@@ -301,8 +305,9 @@ class GlobalRedirectTestCaseDefault extends GlobalRedirectTestCase {
       'menu_check' => 0,
       'nonclean_to_clean' => 1,
       'case_sensitive_urls' => 1,
-      'term_path_handler' => 0,
+      'term_path_handler' => 1,
       'frontpage_redirect' => 1,
+      'trailing_zero' => 0,
     ));
     $this->_globalredirect_batch_test();
   }
@@ -313,7 +318,33 @@ class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
   public static function getInfo() {
     return array(
       'name' => '2. Global Redirect - Config Alpha',
-      'description' => 'Ensure that Global Redirect functions correctly',
+      'description' => 'Ensure that Global Redirect functions correctly. Only enable Trailing Zero',
+      'group' => 'Global Redirect',
+    );
+  }
+
+  function testGlobalRedirect() {
+    variable_set('globalredirect_settings', array(
+      'deslash' => 0,
+      'menu_check' => 0,
+      'nonclean_to_clean' => 0,
+      'case_sensitive_urls' => 0,
+      'term_path_handler' => 0,
+      'frontpage_redirect' => 0,
+      'trailing_zero' => 1,
+    ));
+
+    $this->_globalredirect_batch_test();
+  }
+}
+
+
+
+class GlobalRedirectTestCaseConfigBeta extends GlobalRedirectTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => '3. Global Redirect - Config Beta',
+      'description' => 'Ensure that Global Redirect functions correctly. Only enable Menu Checking',
       'group' => 'Global Redirect',
     );
   }
@@ -324,8 +355,9 @@ class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
       'menu_check' => 1,
       'nonclean_to_clean' => 0,
       'case_sensitive_urls' => 0,
-      'term_path_handler' => 1,
-      'frontpage_redirect' => 1,
+      'term_path_handler' => 0,
+      'frontpage_redirect' => 0,
+      'trailing_zero' => 0,
     ));
 
     $this->_globalredirect_batch_test();
@@ -333,10 +365,14 @@ class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
 }
 
 
+// TODO - If Menu Check AND Trailing Zero enabled, there is no 301 to get rid of /0 off a non-existant term (as the menu check fails).
+// This why they are separated out into to test suites.
+
+
 class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
   public static function getInfo() {
     return array(
-      'name' => '2. Global Redirect - Languages',
+      'name' => '4. Global Redirect - Languages',
       'description' => 'Ensure that Global Redirect functions correctly when locales are used',
       'group' => 'Global Redirect',
     );
