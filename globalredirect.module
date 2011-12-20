@@ -377,13 +377,13 @@ function _globalredirect_get_settings($default_only = FALSE) {
  * globalredirect_request_path() is borrowed from request_uri(), but it only ltrim's..
  */
 function globalredirect_request_path() {
-  if (isset($_SERVER['REQUEST_URI'])) {
+  if (request_uri()) {
     if (isset($_REQUEST['q'])) {
       $path = $_REQUEST['q'];
     }
     else {
       // This is a request using a clean URL. Extract the path from REQUEST_URI.
-      $request_path = strtok($_SERVER['REQUEST_URI'], '?');
+      $request_path = strtok(request_uri(), '?');
       $base_path_len = drupal_strlen(rtrim(dirname($_SERVER['SCRIPT_NAME']), '\/'));
       // Unescape and strip $base_path prefix, leaving q without a leading slash.
       $path = drupal_substr(urldecode($request_path), $base_path_len + 1);
