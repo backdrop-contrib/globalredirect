@@ -195,6 +195,13 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
         'return-code' => $settings['trailing_zero'] > 0 ? 301 : 200,
         'expected-path' => $settings['trailing_zero'] > 0 ? 'test-term' : 'taxonomy/term/2/0',
       ),
+
+      // Regression test for http://drupal.org/node/867654
+      array(
+        'request' => 'taxonomy/term/10/0',
+        'return-code' => $settings['trailing_zero'] ? 301 : 404, // Term 10 does not exist in testing.
+        'expected-path' => $settings['trailing_zero'] ? 'taxonomy/term/10' : 'taxonomy/term/10/0',
+      ),
     );
   }
 
