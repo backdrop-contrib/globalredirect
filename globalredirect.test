@@ -228,7 +228,9 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
     $this->assert('pass', '<pre>' . print_r($test_paths, TRUE) . '</pre>');
 
     // Foreach of the above, lets check they redirect correctly
-    foreach ($test_paths as $path) {
+    foreach ($test_paths as $id => $path) {
+      $this->pass(t('Running Test: !id', array('!id' => $id)));
+
       $path['options'] = isset($path['options']) ? $path['options'] + array('absolute' => TRUE) : array('absolute' => TRUE);
 
       $request_path = url($path['request'], $path['options'] + array('alias' => TRUE));
