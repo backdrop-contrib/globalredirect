@@ -347,7 +347,7 @@ function _globalredirect_is_active($settings) {
    * This is added to allow people to continue to get to the 'admin*' paths,
    * even if the module is misbehaving.
    */
-  if ($settings['ignore_admin_path'] && arg(0) == 'admin') {
+  if ($settings['ignore_admin_path'] && (arg(0) == 'admin' || arg(0) == 'batch')) {
     return FALSE;
   }
 
