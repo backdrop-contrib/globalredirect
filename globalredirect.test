@@ -488,6 +488,7 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
 
 
     // Create a dummy english node
+    // This is Node 2 (node 1 is in the parent::setUp())
     $node = array(
       'type' => 'page',
       'title' => 'Test English Page Node',
@@ -501,8 +502,8 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
     $node = $this->drupalCreateNode($node);
 
 
-    // Create a second dummy node (first made in the parent::setUp())
-    // Set it as a translation of the first node
+    // Create a translation of the english node, tp French
+    // This is Node 3
     $node = array(
       'type' => 'page',
       'title' => 'Test French Page Node',
@@ -517,8 +518,8 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
 
 
 
-    // Create a second dummy node (first made in the parent::setUp())
-    // Set it as a translation of the first node
+    // Create another translation of the english node, to German
+    // This is Node 4
     $node = array(
       'type' => 'page',
       'title' => 'Test German Page Node',
@@ -530,14 +531,9 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
 
     // Save the node
     $node = $this->drupalCreateNode($node);
-
-
-
-
-
-
-
   }
+
+
 
   function testGlobalRedirect() {
     variable_set('globalredirect_settings', array(
