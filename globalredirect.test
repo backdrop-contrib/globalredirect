@@ -1,7 +1,9 @@
 <?php
 
-define('ERROR_MESSAGE',     'ERROR<br />Expected Path: !expected_path<br />Expected Status Code: !expected_status<br />Location: !location<br />Status: !status');
+define('ERROR_MESSAGE',   'ERROR<br />Expected Path: !expected_path<br />Expected Status Code: !expected_status<br />Location: !location<br />Status: !status');
 define('SUCCESS_MESSAGE', 'SUCCESS<br />Expected Path: !expected_path<br />Expected Status Code: !expected_status<br />Location: !location<br />Status: !status');
+define('INFO_MESSAGE',    'Running Test: !id<br />Requesting URL@ !url');
+
 
 /**
  * @file
@@ -229,15 +231,28 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
     // Foreach of the above, lets check they redirect correctly
     foreach ($test_paths as $id => $path) {
-      $this->pass(t('Running Test: !id', array('!id' => $id)));
+      // Overlay some defaults onto the path. This ensures 'options' is set as an array.
+      $path += array(
+        'options' => array(),
+      );
 
-      $path['options'] = isset($path['options']) ? $path['options'] + array('absolute' => TRUE) : array('absolute' => TRUE);
+      // If the path doesn't have an absolute or alias setting, set them to TRUE.
+      $path['options'] += array(
+        'absolute' => TRUE,
+        'alias' => TRUE,
+      );
 
-      $request_path = url($path['request'], $path['options'] + array('alias' => TRUE));
+      // Build a URL from the path
+      $request_path = url($path['request'], $path['options']);
 
 
-      // Display a message tellingthe user what we're testing
-      $this->pass(t('Requesting: !path', array('!path' => $request_path)));
+      // Display a message telling the user what we're testing
+      $info = array(
+        '!id' => $id,
+        '!url' => $request_path,
+      );
+      $this->pass(t(INFO_MESSAGE, $info), 'GlobalRedirect');
+
 
       // Do a HEAD request (don't care about the body). The alias=>TRUE is to tell Drupal not to lookup the alias - this is a raw request.
       $this->drupalHead($request_path, array('alias' => TRUE));
