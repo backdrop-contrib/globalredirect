@@ -72,15 +72,14 @@ function globalredirect_init() {
   $request_path = globalredirect_request_path();
 
 
-  // Let the locale_language_url_rewrite_url() do it's magic, if preset.
-  // TODO: Is this needed anymore?
-  if (function_exists('locale_language_url_rewrite_url')) {
-    // Note 1 : the locale_language_url_rewrite_url() takes path (by reference)
-    //          as the first argument but does not use it at all
-    // Note 2 : We use $request_path here as we want the path in an untouched
-    //          form (current_path() gets modified by core)
-    locale_language_url_rewrite_url($request_path, $options);
-  }
+  // Allow Drupal to rewrite the URL
+  // Most commonly this will be used to invoke locale_language_url_rewrite_url().
+  // Via the locale_url_outbound_alter() implementation of hook_url_outbound_alter().
+  // NOTE: We use $request_path here as current_path() is $_GET['q'] which gets
+  //       altered by core, whereas $request_path is untouched
+  drupal_alter('url_outbound', $request_path, $options, $request_path);
+
+  // Extract the prefix from the options.
   $prefix = rtrim($options['prefix'], '/');
 
   // Do a check if this is a front page
