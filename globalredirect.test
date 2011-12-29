@@ -2,7 +2,7 @@
 
 define('ERROR_MESSAGE',   'ERROR<br />Expected Path: !expected_path<br />Expected Status Code: !expected_status<br />Location: !location<br />Status: !status');
 define('SUCCESS_MESSAGE', 'SUCCESS<br />Expected Path: !expected_path<br />Expected Status Code: !expected_status<br />Location: !location<br />Status: !status');
-define('INFO_MESSAGE',    'Running Test: !id<br />Requesting URL: !url');
+define('INFO_MESSAGE',    'Running Test: !id<br />Requesting URL: !url<br />Path Info:<br />!path');
 
 
 /**
@@ -225,6 +225,17 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
 
   protected function _globalredirect_batch_test() {
+    // Define the default path options
+    $path_defaults = array(
+      'options' => array()
+    );
+    $path_options_defaults = array(
+      'base_url' => $GLOBALS['base_url'] . base_path(),
+      'absolute' => TRUE,
+      'alias' => TRUE,
+      'external' => TRUE,
+    );
+
     // Get the test paths
     $test_paths = $this->_globalredirect_test_paths();
     $this->assert('pass', '<pre>' . print_r($test_paths, TRUE) . '</pre>');
@@ -232,23 +243,20 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
     // Foreach of the above, lets check they redirect correctly
     foreach ($test_paths as $id => $path) {
       // Overlay some defaults onto the path. This ensures 'options' is set as an array.
-      $path += array(
-        'options' => array(),
-      );
+      $path += $path_defaults;
 
       // If the path doesn't have an absolute or alias setting, set them to TRUE.
-      $path['options'] += array(
-        'absolute' => TRUE,
-        'alias' => TRUE,
-      );
+      $path['options'] += $path_options_defaults;
 
       // Build a URL from the path
-      $request_path = url($path['request'], $path['options']);
+      $request_path = $path['options']['external'] ? ($path['options']['base_url'] . $path['request']) : $path['request'];
+      $request_path = url($request_path, $path['options']);
 
 
       // Display a message telling the user what we're testing
       $info = array(
         '!id' => $id,
+        '!path' => '<pre>'. print_r($path, TRUE) .'</pre>',
         '!url' => $request_path,
       );
       $this->pass(t(INFO_MESSAGE, $info), 'GlobalRedirect');
@@ -486,8 +494,20 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
     $this->admin_user = $this->drupalCreateUser(array('bypass node access', 'administer nodes', 'administer languages', 'administer content types', 'administer blocks', 'access administration pages'));
     $this->drupalLogin($this->admin_user);
 
-    $this->addLanguage('fr');
-    $this->addLanguage('de');
+    // Force each lang code to have a prefix.
+    foreach (array('en', 'fr', 'de') as $langcode) {
+      $prefix = '';
+      if ($langcode != 'en') {
+        $this->addLanguage($langcode);
+        $prefix = $langcode;
+      }
+
+      $edit = array('prefix' => $prefix);
+      $this->drupalPost('admin/config/regional/language/edit/'. $langcode, $edit, t('Save language'));
+      // TODO: There doesn't seem to be a message to confirm the save was successful!
+      //$this->assertRaw(t('The configuration options have been saved.'), t('URL language part set to prefix.'));
+    }
+
 
     $this->drupalGet('admin/structure/types/manage/page');
     $edit = array();
@@ -500,6 +520,11 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
     $this->drupalPost('admin/config/regional/language/configure', $edit, t('Save settings'));
     $this->assertRaw(t('Language negotiation configuration saved.'), t('URL language detection enabled.'));
     drupal_static_reset('locale_url_outbound_alter');
+
+    // Ensure the URL part is set to prefix
+    $edit = array('locale_language_negotiation_url_part' => 0);
+    $this->drupalPost('admin/config/regional/language/configure/url', $edit, t('Save configuration'));
+    $this->assertRaw(t('The configuration options have been saved.'), t('URL language part set to prefix.'));
 
 
     // Create a dummy english node
