@@ -1,5 +1,6 @@
 name = Global Redirect
 description = "Searches for an alias of the current URL and 301 redirects if found. Stops duplicate content arising when path module is enabled."
+package = Path management
 core = 7.x
 files[] = globalredirect.test
 configure = admin/config/system/globalredirect
