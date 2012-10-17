@@ -227,6 +227,30 @@ function globalredirect_init() {
     globalredirect_goto($current_path, $options);
   }
 
+  // If on a comment path, try to redirect to the associate node
+  if ($settings['comment_to_node'] && module_exists('comment') && preg_match('/comment\/(?P<cid>[0-9]+)$/', $current_path, $matches)) {
+    $cid = $matches['cid'];
+
+    // Code "borrowed" from comment_permalink($cid)
+    if (($comment = comment_load($cid)) && ($node = node_load($comment->nid))) {
+      // Find the current display page for this comment.
+      $page = comment_get_display_page($comment->cid, $node->type);
+
+      // If it's more than 0, set the query string parameter
+      // TODO - maintain other params?!
+      if ($page > 0) {
+        $options['query']['page'] = $page;
+      }
+
+      // Add the fragment to the comment anchor
+      $options['fragment'] = 'comment-' . $comment->cid;
+
+      // Redirect to the node, with the comment querystring/fragment.
+      globalredirect_goto('node/' . $node->nid, $options);
+    }
+  }
+
+
   // Restore the destination from earlier so its available in other places.
   if (isset($destination)) {
     $_GET['destination'] = $destination;
@@ -372,6 +396,7 @@ function _globalredirect_get_settings($default_only = FALSE) {
     'term_path_handler' => 1,
     'frontpage_redirect' => 1,
     'ignore_admin_path' => 1,
+    'comment_to_node' => 0,
   );
 
   if ($default_only) {

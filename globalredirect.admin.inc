@@ -104,6 +104,14 @@ function globalredirect_settings() {
     '#default_value' => $settings['ignore_admin_path'],
   );
 
+  $form['settings']['comment_to_node'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Redirect Comments To Node'),
+    '#description' => t('If enabled, any request to a comment URL will redirect to the associate node.'),
+    '#default_value' => $settings['comment_to_node'],
+  );
+
+
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#submit' => array('globalredirect_settings_submit_save'),
