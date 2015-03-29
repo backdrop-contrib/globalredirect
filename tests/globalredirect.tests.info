@@ -1,0 +1,30 @@
+[GlobalRedirectTestCase]
+name = Global Redirect Test
+description = Global Redirect functionality tests
+group = GlobalRedirect
+file = globalredirect.test
+
+[GlobalRedirectTestCaseDefault]
+name = Global Redirect Test - Default
+description = Global Redirect functionality tests
+group = GlobalRedirect
+file = globalredirect.test
+
+[GlobalRedirectTestCaseConfigAlpha]
+name = Global Redirect Test - Config Alpha
+description = Global Redirect functionality tests
+group = GlobalRedirect
+file = globalredirect.test
+
+[GlobalRedirectTestCaseConfigBeta]
+name = Global Redirect Test - Config Beta
+description = Global Redirect functionality tests
+group = GlobalRedirect
+file = globalredirect.test
+
+[GlobalRedirectTestCaseConfigLanguages]
+name = Global Redirect Test - Config Languages
+description = Global Redirect functionality tests
+group = GlobalRedirect
+file = globalredirect.test
+

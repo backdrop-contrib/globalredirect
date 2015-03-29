@@ -10,7 +10,7 @@ define('INFO_MESSAGE',    'Running Test: !id<br />Requesting URL: !url<br />Path
  * Global Redirect functionality tests
  */
 
-class GlobalRedirectTestCase extends DrupalWebTestCase {
+class GlobalRedirectTestCase extends BackdropWebTestCase {
 
   private $gr_forum_term;
   private $gr_term;
@@ -20,31 +20,32 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
     $modules[] = 'path';
     $modules[] = 'globalredirect';
     $modules[] = 'taxonomy';
-    $modules[] = 'forum';
+    $modules[] = 'language';
+    //$modules[] = 'forum';
     parent::setUp($modules);
 
     // Clean URLs should be enabled for testing.
-    variable_set('clean_url', 1);
+    config_get('system.core', 'clean_url');
 
     // Create a user
-    $this->normal_user = $this->drupalCreateUser(array(
+    $this->normal_user = $this->backdropCreateUser(array(
       'access content',
       'create page content',
       'create url aliases',
       'access administration pages', // For the 'ignore admin path' test
     ));
-    $this->drupalLogin($this->normal_user);
+    $this->backdropLogin($this->normal_user);
 
     // Create a dummy node
     $node = array(
       'type' => 'page',
       'title' => 'Test Page Node',
       'path' => array('alias' => 'test-node'),
-      'language' => LANGUAGE_NONE,
+      'langcode' => LANGUAGE_NONE,
     );
 
     // Save the node
-    $node = $this->drupalCreateNode($node);
+    $node = $this->backdropCreateNode($node);
 
     // Create an alias for the create story path - this is used in the "redirect with permissions testing" test.
     $path = array('source' => 'node/add/article', 'alias' => 'node-add-article');
@@ -56,29 +57,29 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
 
     // The forum vocab should already be created - should be term 1?
-    $forum_term = (object)array(
-      'vid' => variable_get('forum_nav_vocabulary', 0),
+    $forum_term = entity_create('taxonomy_term', array(
+      'vocabulary' => 'tags',
       'name' => 'Test Forum Term',
-    );
+    ));
     taxonomy_term_save($forum_term);
     $this->gr_forum_term = taxonomy_term_load($forum_term->tid);
 
     // Create another test vocab (with a default module) - should be vocab 2?
-    $vocab = (object)array(
+    $vocab = new TaxonomyVocabulary(array(
       'name' => 'test vocab',
       'machine_name' => 'test-vocab',
       'hierarchy' => 0,
       'module' => 'taxonomy',
-    );
+    ));
     taxonomy_vocabulary_save($vocab);
-    $vocab = taxonomy_vocabulary_load($vocab->vid, TRUE);
+    $vocab = taxonomy_vocabulary_load($vocab->machine_name, TRUE);
 
     // Create a test term - Should be term 2?
-    $term = (object)array(
-      'vid' => $vocab->vid,
+    $term = entity_create('taxonomy_term', array(
+      'vocabulary' => $vocab->machine_name,
       'name' => 'Test Term',
       'path' => array('alias' => 'test-term'),
-    );
+    ));
     taxonomy_term_save($term);
     $this->gr_term = taxonomy_term_load($term->tid);
   }
@@ -207,14 +208,14 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
         'expected-path' => $settings['trailing_zero'] > 0 ? 'test-term' : 'taxonomy/term/' .  $this->gr_term->tid . '/0',
       ),
 
-      // Regression test for http://drupal.org/node/867654 - term 10 does not exist
+      // Regression test for http://backdrop.org/node/867654 - term 10 does not exist
       array(
         'request' => 'taxonomy/term/10/0',
         'return-code' => $settings['trailing_zero'] > 0 ? 301 : 404, // Term 10 does not exist in testing.
         'expected-path' => $settings['trailing_zero'] > 0 ? 'taxonomy/term/10' : 'taxonomy/term/10/0',
       ),
 
-      // Regression test for http://drupal.org/node/867654 - term 10 does not exist
+      // Regression test for http://backdrop.org/node/867654 - term 10 does not exist
       array(
         'request' => 'admin',
         'return-code' => $settings['ignore_admin_path'] > 0 ? 200 : 301, // Ignoring the admin path means no src=>alias redirecting.
@@ -230,7 +231,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
       'options' => array()
     );
     $path_options_defaults = array(
-      'base_url' => $GLOBALS['base_url'] . base_path(),
+      'base_url' => $GLOBALS['base_url'] . '/',
       'absolute' => TRUE,
       'alias' => TRUE,
       'external' => TRUE,
@@ -262,12 +263,12 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
       $this->pass(t(INFO_MESSAGE, $info), 'GlobalRedirect');
 
 
-      // Do a HEAD request (don't care about the body). The alias=>TRUE is to tell Drupal not to lookup the alias - this is a raw request.
-      $this->drupalHead($request_path, array('alias' => TRUE));
+      // Do a HEAD request (don't care about the body). The alias=>TRUE is to tell Backdrop not to lookup the alias - this is a raw request.
+      $this->backdropHead($request_path, array('alias' => TRUE));
 
 
       // Grab the headers from the request
-      $headers = $this->drupalGetHeaders(TRUE);
+      $headers = $this->backdropGetHeaders(TRUE);
 
 
       // Build a nice array of results
@@ -319,7 +320,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
       }
       else {
         // The status either wasn't present or was not as expected
-        $this->fail(t(ERROR_MESSAGE, $result), 'GlobalRedirect');
+        $this->fail(t(ERROR_MESSAGE, $result), 'GlobalRedirect2');
         $this->fail('<pre>' . print_r($headers, TRUE) . '</pre>');
       }
     }
@@ -337,7 +338,7 @@ class GlobalRedirectTestCaseDefault extends GlobalRedirectTestCase {
   }
 
   function testGlobalRedirect() {
-    variable_set('globalredirect_settings', array(
+    config_set('globalredirect.settings', 'globalredirect_settings', array(
       'deslash' => 1,
       'menu_check' => 0,
       'nonclean_to_clean' => 1,
@@ -362,7 +363,7 @@ class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
   }
 
   function testGlobalRedirect() {
-    variable_set('globalredirect_settings', array(
+    config_set('globalredirect.settings', 'globalredirect_settings', array(
       'deslash' => 0,
       'menu_check' => 0,
       'nonclean_to_clean' => 0,
@@ -389,7 +390,7 @@ class GlobalRedirectTestCaseConfigBeta extends GlobalRedirectTestCase {
   }
 
   function testGlobalRedirect() {
-    variable_set('globalredirect_settings', array(
+    config_set('globalredirect.settings', 'globalredirect_settings', array(
       'deslash' => 0,
       'menu_check' => 1,
       'nonclean_to_clean' => 0,
@@ -464,15 +465,35 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
       'expected-path' => 'de/test-german-node',
     );
 
+    // Requesting to edit the french node on the english site. Should redirect to the english node edit
+    $paths[] = array(
+      'request' => 'node/3/edit',
+      'return-code' => 301,
+      'expected-path' => 'node/2/edit',
+    );
+
+    // Requesting to edit the english node on the french site - should redirect to edit the french node
+    $paths[] = array(
+      'request' => 'fr/node/2/edit',
+      'return-code' => 301,
+      'expected-path' => 'fr/node/3/edit',
+    );
+
+    // Requesting to edit the german node on the german site. Should return a 200...
+    $paths[] = array(
+      'request' => 'de/node/4/edit',
+      'return-code' => 200,
+    );
+
     return $paths;
   }
 
 
   function setUp(array $modules = array()) {
-    parent::setUp(array('locale', 'translation'));
+    parent::setUp(array('locale', 'translation', 'language'));
 
-    $this->admin_user = $this->drupalCreateUser(array('bypass node access', 'administer nodes', 'administer languages', 'administer content types', 'administer blocks', 'access administration pages'));
-    $this->drupalLogin($this->admin_user);
+    $this->admin_user = $this->backdropCreateUser(array('bypass node access', 'administer nodes', 'administer languages', 'administer content types', 'administer blocks', 'access administration pages'));
+    $this->backdropLogin($this->admin_user);
 
     // Force each lang code to have a prefix.
     foreach (array('en', 'fr', 'de') as $langcode) {
@@ -483,27 +504,27 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
       }
 
       $edit = array('prefix' => $prefix);
-      $this->drupalPost('admin/config/regional/language/edit/'. $langcode, $edit, t('Save language'));
+      $this->backdropPost('admin/config/regional/language/edit/'. $langcode, $edit, t('Save language'));
       // TODO: There doesn't seem to be a message to confirm the save was successful!
       //$this->assertRaw(t('The configuration options have been saved.'), t('URL language part set to prefix.'));
     }
 
 
-    $this->drupalGet('admin/structure/types/manage/page');
+    $this->backdropGet('admin/structure/types/manage/page');
     $edit = array();
-    $edit['language_content_type'] = 2;
-    $this->drupalPost('admin/structure/types/manage/page', $edit, t('Save content type'));
+    $edit['language'] = 2;
+    $this->backdropPost('admin/structure/types/manage/page', $edit, t('Save content type'));
     $this->assertRaw(t('The content type %type has been updated.', array('%type' => 'Basic page')), t('Basic page content type has been updated.'));
 
     // Enable URL language detection and selection
-    $edit = array('language[enabled][locale-url]' => TRUE);
-    $this->drupalPost('admin/config/regional/language/configure', $edit, t('Save settings'));
+    $edit = array('language[locale-url][enabled]' => TRUE);
+    $this->backdropPost('admin/config/regional/language/detection', $edit, t('Save settings'));
     $this->assertRaw(t('Language negotiation configuration saved.'), t('URL language detection enabled.'));
-    drupal_static_reset('locale_url_outbound_alter');
+    backdrop_static_reset('locale_url_outbound_alter');
 
     // Ensure the URL part is set to prefix
     $edit = array('locale_language_negotiation_url_part' => 0);
-    $this->drupalPost('admin/config/regional/language/configure/url', $edit, t('Save configuration'));
+    $this->backdropPost('admin/config/regional/language/detection/url', $edit, t('Save configuration'));
     $this->assertRaw(t('The configuration options have been saved.'), t('URL language part set to prefix.'));
 
 
@@ -513,13 +534,13 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
       'type' => 'page',
       'title' => 'Test English Page Node',
       'path' => array('alias' => 'test-english-node'),
-      'language' => 'en',
+      'langcode' => 'en',
       'tnid' => 2,
       'body' => array('en' => array(array())),
     );
 
     // Save the node
-    $node = $this->drupalCreateNode($node);
+    $node = $this->backdropCreateNode($node);
 
 
     // Create a translation of the english node, tp French
@@ -528,13 +549,13 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
       'type' => 'page',
       'title' => 'Test French Page Node',
       'path' => array('alias' => 'test-french-node'),
-      'language' => 'fr',
+      'langcode' => 'fr',
       'tnid' => 2,
       'body' => array('fr' => array(array())),
     );
 
     // Save the node
-    $node = $this->drupalCreateNode($node);
+    $node = $this->backdropCreateNode($node);
 
 
 
@@ -544,19 +565,19 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
       'type' => 'page',
       'title' => 'Test German Page Node',
       'path' => array('alias' => 'test-german-node'),
-      'language' => 'de',
+      'langcode' => 'de',
       'tnid' => 2,
       'body' => array('de' => array(array())),
     );
 
     // Save the node
-    $node = $this->drupalCreateNode($node);
+    $node = $this->backdropCreateNode($node);
   }
 
 
 
   function testGlobalRedirect() {
-    variable_set('globalredirect_settings', array(
+    config_set('globalredirect.settings', 'globalredirect_settings', array(
       'language_redirect' => 1,
     ));
 
@@ -575,21 +596,21 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
    */
   function addLanguage($language_code) {
     // Check to make sure that language has not already been installed.
-    $this->drupalGet('admin/config/regional/language');
+    $this->backdropGet('admin/config/regional/language');
 
-    if (strpos($this->drupalGetContent(), 'enabled[' . $language_code . ']') === FALSE) {
+    if (strpos($this->backdropGetContent(), 'enabled[' . $language_code . ']') === FALSE) {
       // Doesn't have language installed so add it.
       $edit = array();
-      $edit['langcode'] = $language_code;
-      $this->drupalPost('admin/config/regional/language/add', $edit, t('Add language'));
+      $edit['predefined_langcode'] = $language_code;
+      $this->backdropPost('admin/config/regional/language/add', $edit, t('Add language'));
 
       // Make sure we are not using a stale list.
-      drupal_static_reset('language_list');
+      backdrop_static_reset('language_list');
       $languages = language_list('language');
       $this->assertTrue(array_key_exists($language_code, $languages), t('Language was installed successfully.'));
 
       if (array_key_exists($language_code, $languages)) {
-        $this->assertRaw(t('The language %language has been created and can now be used. More information is available on the <a href="@locale-help">help screen</a>.', array('%language' => $languages[$language_code]->name, '@locale-help' => url('admin/help/locale'))), t('Language has been created.'));
+        $this->assertRaw(t('The language %language has been created and can now be used.', array('%language' => $languages[$language_code]->name)), t('Language has been created.'));
       }
     }
     elseif ($this->xpath('//input[@type="checkbox" and @name=:name and @checked="checked"]', array(':name' => 'enabled[' . $language_code . ']'))) {
@@ -599,7 +620,7 @@ class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
     else {
       // It's installed but not enabled. Enable it.
       $this->assertTrue(true, 'Language [' . $language_code . '] already installed.');
-      $this->drupalPost(NULL, array('enabled[' . $language_code . ']' => TRUE), t('Save configuration'));
+      $this->backdropPost(NULL, array('enabled[' . $language_code . ']' => TRUE), t('Save configuration'));
       $this->assertRaw(t('Configuration saved.'), t('Language successfully enabled.'));
     }
   }

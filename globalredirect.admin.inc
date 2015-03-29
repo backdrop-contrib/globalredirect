@@ -31,7 +31,7 @@ function globalredirect_settings() {
   $form['settings']['trailing_zero'] = array(
     '#type' => 'radios',
     '#title' => t('Remove Trailing Zero Argument'),
-    '#description' => t('If enabled, any instance of "/0" will be trimmed from the right of the URL. This stops duplicate pages such as "taxonomy/term/1" and "taxonomy/term/1/0" where 0 is the default depth. There is an option of limiting this feature to taxonomy term pages ONLY or allowing it to effect any page. <strong>By default this feature is disabled to avoid any unexpected behavior. Also of note, the trailing /0 "depth modifier" was removed from Drupal 7.</strong>'),
+    '#description' => t('If enabled, any instance of "/0" will be trimmed from the right of the URL. This stops duplicate pages such as "taxonomy/term/1" and "taxonomy/term/1/0" where 0 is the default depth. There is an option of limiting this feature to taxonomy term pages ONLY or allowing it to effect any page. <strong>By default this feature is disabled to avoid any unexpected behavior. Also of note, the trailing /0 "depth modifier" was removed from Backdrop 7.</strong>'),
     '#options' => array(
       0 => t('Disabled'),
       1 => t('Enabled for all pages'),
@@ -104,14 +104,6 @@ function globalredirect_settings() {
     '#default_value' => $settings['ignore_admin_path'],
   );
 
-  $form['settings']['comment_to_node'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Redirect Comments To Node'),
-    '#description' => t('If enabled, any request to a comment URL will redirect to the associate node.'),
-    '#default_value' => $settings['comment_to_node'],
-  );
-
-
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#submit' => array('globalredirect_settings_submit_save'),
@@ -151,13 +143,13 @@ function globalredirect_settings_submit_save($form_id, &$form_state) {
 
   // If we've ended up with an empty settings array, delete the settings variable...
   if (empty($settings)) {
-    variable_del('globalredirect_settings');
+    config_set('globalredirect.settings', 'globalredirect_settings', array());
   }
   // ... otherwise store the settings
   else {
-    variable_set('globalredirect_settings', $settings);
+    config_set('globalredirect.settings', 'globalredirect_settings', $settings);
   }
-  drupal_set_message(t('Globalredirect settings have been saved.'));
+  backdrop_set_message(t('Globalredirect settings have been saved.'));
 }
 
 
@@ -166,6 +158,6 @@ function globalredirect_settings_submit_save($form_id, &$form_state) {
  * This simply deletes any overridden settings which forces the system to fallback to defaults
  */
 function globalredirect_settings_submit_reset($form_id, &$form_state) {
-  variable_del('globalredirect_settings');
-  drupal_set_message(t('Globalredirect settings have been reset to default.'));
+  config_set('globalredirect.settings', 'globalredirect_settings', array());
+  backdrop_set_message(t('Globalredirect settings have been reset to default.'));
 }

@@ -6,6 +6,15 @@
  */
 
 /**
+ * Implements hook_install().
+ */
+function globalredirect_install() {
+  $config = config('globalredirect.settings');
+  $config->set('globalredirect_settings', array());
+  $config->save();
+}
+
+/**
  * Implements hook_uninstall().
  */
 function globalredirect_uninstall() {
@@ -24,7 +33,7 @@ function globalredirect_update_6100() {
 
 function globalredirect_update_6101() {
   // Get the default settings
-  drupal_load('module', 'globalredirect');
+  backdrop_load('module', 'globalredirect');
   $defaults = _globalredirect_get_settings(TRUE);
 
   // Define a settings array based on the variables already set (or their defaults)
