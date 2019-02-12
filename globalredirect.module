@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * The Global Redirect module redirects for all paths which have aliases but
@@ -7,13 +6,15 @@
  */
 
 /**
- * Implements hook_help().
+ * Implements hook_config_info().
  */
-function globalredirect_help($path, $arg) {
-  switch ($path) {
-    case 'admin/help#globalredirect':
-      return t('This module will do a 301 redirect for all nodes which have an alias but are not using that alias.');
-  }
+function globalredirect_config_info() {
+  $prefixes['globalredirect.settings'] = array(
+    'label' => t('Global Redirect Settings'),
+    'group' => t('Configuration'),
+  );
+
+  return $prefixes;
 }
 
 /**
