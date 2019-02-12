@@ -1,11 +1,11 @@
 GLOBAL REDIRECT
 ===============
 
-WHAT?
------
+GlobalRedirect is a simple module which redirects visitors from one page to another.
 
-GlobalRedirect is a simple module which…
+URL aliases provide nice clean URLs for the pages of a site. However Backdrop does not remove the old system path (eg node/1234). The problem is that you now have two URLs representing the same content. This is considdered "duplicate content" by search engines, and can decrease your pagerank.
 
+Redirections:
 - Checks the current URL for an alias and does a 301 redirect to it if it is not being used.
 - Checks the current URL for a trailing slash, removes it if present and repeats check 1 with the new request.
 - Checks if the current URL is the same as the site_frontpage and redirects to the frontpage if there is a match.
@@ -14,30 +14,20 @@ GlobalRedirect is a simple module which…
 - Make sure the case of the URL being accessed is the same as the one set by the author/administrator. For example, if you set the alias "articles/cake-making" to node/123, then the user can access the alias with any combination of case.
 - Most of the above options are configurable in the settings page. In Backdrop 5 you can access this after enabling the globalredirect_admin module.
 
-WHY?
-----
+Current Maintainers
+------------------- 
 
-Once enabled, an alias provides a nice clean URL for a path on a site. However Backdrop does not remove the old path (eg node/1234). The problem is that you now have two URLs representing the same content. This is dangerous territory for duplicate pages which can get you sandboxed by the search engines!
+- docwilmot (https://github.com/docwilmot)
+- Seeking new maintainers
 
-HOW?
-----
+Credits
+-------
 
-This module uses hook_init to interrupt the page load and action the alias lookups. If any of the above rules apply then the appropriate action is taken. If no rules apply then the page load continues uninterrupted. An example of this in use is on the site it was developed for. http://www.sportbusiness.com/node/160559 will redirect to http://www.sportbusiness.com/news/160559/lagardere-sets-up-sports-division due to the alias setup on this site.
+- Ported to Backdrop by [docwilmot](https://github.com/docwilmot)
+- Maintained for Drupal by [Nicholas Thompson](https://www.drupal.org/u/nicholasthompson)
 
-LICENSE
----------------    
+License
+-------
 
-This project is GPL v2 software. See the LICENSE.txt file in this directory 
-for complete text.
-
-CURRENT MAINTAINERS
----------------    
-
-Looking for maintainers
-Ported to Backdrop by docwilmot (https://github.com/docwilmot)
-
-CREDITS   
---------------- 
-
-This module is a fork of the Backdrop version maintained on Backdrop by Nicholas Thompson 
-(https://www.drupal.org/u/nicholasthompson)
+This project is GPL v2 software. See the LICENSE.txt file in this directory for
+complete text.
