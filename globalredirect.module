@@ -379,7 +379,12 @@ function _globalredirect_get_settings($default_only = FALSE) {
     return $defaults;
   }
 
-  return config_get('globalredirect.settings', 'globalredirect_settings') + $defaults;
+
+  if ($settings = config_get('globalredirect.settings', 'globalredirect_settings')) {
+    return $settings + $defaults;
+  }
+
+  return $defaults;
 }
 
 
