@@ -274,7 +274,7 @@ function globalredirect_url_is_external($path) {
  * Implements hook_menu().
  */
 function globalredirect_menu() {
-  $items['admin/config/system/globalredirect'] = array(
+  $items['admin/config/urls/globalredirect'] = array(
     'title' => 'Global Redirect',
     'description' => 'Chose which features you would like enabled for Global Redirect',
     'page callback' => 'backdrop_get_form',
