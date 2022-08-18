@@ -57,8 +57,8 @@ function globalredirect_init() {
     $query_string = NULL;
   }
 
-  // Establish the language prefix that should be used, ie. the one that
-  // backdrop_goto() would use
+  // Establish the language prefix that should be used, i.e. the one that
+  // backdrop_goto() would use.
   $options = array(
     'fragment' => '',
     'query' => $query_string,
@@ -66,6 +66,9 @@ function globalredirect_init() {
     'alias' => FALSE,
     'prefix' => '',
     'external' => FALSE,
+    // Inform other modules that hook_url_outbound_alter() was invoked by
+    // globalredirect.
+    'globalredirect' => TRUE,
   );
 
   // Get the request path. We cannot use request_path() as it uses a completely trimmed path.
