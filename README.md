@@ -1,4 +1,4 @@
-GLOBAL REDIRECT
+Global Redirect
 ===============
 
 GlobalRedirect is a simple module which redirects visitors from one page to another.
@@ -12,10 +12,10 @@ Redirections:
 - Checks if the Clean URLs feature is enabled and then checks the current URL is being accessed using the clean method rather than the 'unclean' method.
 - Checks access to the URL. If the user does not have access to the path, then no redirects are done. This helps avoid exposing private aliased node's.
 - Make sure the case of the URL being accessed is the same as the one set by the author/administrator. For example, if you set the alias "articles/cake-making" to node/123, then the user can access the alias with any combination of case.
-- Most of the above options are configurable in the settings page. In Backdrop 5 you can access this after enabling the globalredirect_admin module.
+- Most of the above options are configurable in the settings page.
 
 Current Maintainers
-------------------- 
+-------------------
 
 - docwilmot (https://github.com/docwilmot)
 - Nate Lampton (https://github.com/quicksketch)
