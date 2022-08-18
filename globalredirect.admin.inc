@@ -104,13 +104,16 @@ function globalredirect_settings() {
     '#default_value' => $settings['ignore_admin_path'],
   );
 
-  $form['buttons']['submit'] = array(
+  $form['actions'] = array(
+    '#type' => 'actions',
+  );
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#submit' => array('globalredirect_settings_submit_save'),
     '#value' => t('Save Configuration'),
   );
 
-  $form['buttons']['reset'] = array(
+  $form['actions']['reset'] = array(
     '#type' => 'submit',
     '#submit' => array('globalredirect_settings_submit_reset'),
     '#value' => t('Reset to defaults'),
