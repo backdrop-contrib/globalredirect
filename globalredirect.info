@@ -3,5 +3,4 @@ description = "Searches for an alias of the current URL and 301 redirects if fou
 type = module
 package = Path management
 backdrop = 1.x
-files[] = globalredirect.test
-configure = admin/config/system/globalredirect
+configure = admin/config/urls/globalredirect
