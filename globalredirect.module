@@ -105,26 +105,8 @@ function globalredirect_init() {
     return;
   }
 
-
   // Get the current page - it's already "deslashed"
   $current_path = current_path();
-
-
-  // Optional stripping of "/0". Disabled by default.
-  switch ($settings['trailing_zero']) {
-    case 2 :
-      // If 'taxonomy/term/*' only. If not, break out.
-      if (backdrop_substr($current_path, 0, 14) != 'taxonomy/term/') {
-        break;
-      }
-      // If it is, fall through to general trailing zero method
-    case 1 :
-      // If last 2 characters of URL are /0 then trim them off
-      if (backdrop_substr($current_path, -2) == '/0') {
-        $current_path = backdrop_substr($current_path, 0, -2);
-      }
-  }
-
 
   // If the feature is enabled, check and redirect taxonomy/term/* requests to their proper handler defined by hook_term_path().
   if ($settings['term_path_handler'] && module_exists('taxonomy') && preg_match('/taxonomy\/term\/([0-9]+)$/', $current_path, $matches)) {
@@ -364,7 +346,6 @@ function _globalredirect_get_settings($default_only = FALSE) {
   $defaults = array(
     'deslash' => 1,
     'nonclean_to_clean' => 1,
-    'trailing_zero' => 0,
     'menu_check' => 0,
     'case_sensitive_urls' => 1,
     'language_redirect' => 0,

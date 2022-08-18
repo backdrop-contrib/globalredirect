@@ -22,6 +22,13 @@ function globalredirect_update_1000() {
   update_variable_del('globalredirect_settings');
 }
 
+/**
+ * Remove the unused "trailing_zero" redirect setting.
+ */
+function globalredirect_update_1001() {
+  config_clear('globalredirect.settings', 'globalredirect_settings.trailing_zero');
+}
+
 // This is an ugly work-around because the Drupal 7 version of Global Redirect
 // still contains Drupal 6 update hooks. Backdrop will consider these newer than
 // any updates named globalredirect_update_1000() or higher. As such, we need
@@ -39,6 +46,7 @@ if (function_exists('state_get') &&
 
     // Manually execute remaining updates.
     globalredirect_update_1000();
+    globalredirect_update_1001();
   }
 
   /**
@@ -48,6 +56,6 @@ if (function_exists('state_get') &&
    * number is updated after update.php has executed update 6999.
    */
   function _globalredirect_update_6999() {
-    db_query("UPDATE {system} SET schema_version = 1000 WHERE name = 'globalredirect'");
+    db_query("UPDATE {system} SET schema_version = 1001 WHERE name = 'globalredirect'");
   }
 }

@@ -191,30 +191,6 @@ class GlobalRedirectTestCase extends BackdropWebTestCase {
         'expected-path' => $settings['term_path_handler'] ? 'forum/' . $this->gr_forum_term->tid : 'taxonomy/term/' . $this->gr_forum_term->tid,
       ),
 
-
-      // Trailing Zero Check --- This may or may not redirect, depending on the state of trailing_zero, as we're requesting an aliased path with a trailing zero source
-      // If 1, we trim ALL trailing /0... If 0 (disabled) or 2 (taxonomy term only), then a 200 response should be issued.
-      array(
-        'request' => 'node/1/0',
-        'return-code' => $settings['trailing_zero'] == 1 ? 301 : 200,
-        'expected-path' => $settings['trailing_zero'] == 1 ? 'test-node' : 'node/1/0',
-      ),
-
-      // Trailing Zero Check --- This may or may not redirect, depending on the state of trailing_zero, as we're requesting an aliased path with a trailing zero source
-      // If not disabled, then we should trim from taxonomy/term/1/0
-      array(
-        'request' => 'taxonomy/term/' . $this->gr_term->tid . '/0',
-        'return-code' => $settings['trailing_zero'] > 0 ? 301 : 200,
-        'expected-path' => $settings['trailing_zero'] > 0 ? 'test-term' : 'taxonomy/term/' .  $this->gr_term->tid . '/0',
-      ),
-
-      // Regression test for http://backdrop.org/node/867654 - term 10 does not exist
-      array(
-        'request' => 'taxonomy/term/10/0',
-        'return-code' => $settings['trailing_zero'] > 0 ? 301 : 404, // Term 10 does not exist in testing.
-        'expected-path' => $settings['trailing_zero'] > 0 ? 'taxonomy/term/10' : 'taxonomy/term/10/0',
-      ),
-
       // Regression test for http://backdrop.org/node/867654 - term 10 does not exist
       array(
         'request' => 'admin',
@@ -345,7 +321,6 @@ class GlobalRedirectTestCaseDefault extends GlobalRedirectTestCase {
       'case_sensitive_urls' => 1,
       'term_path_handler' => 1,
       'frontpage_redirect' => 1,
-      'trailing_zero' => 0,
       'ignore_admin_path' => 1,
     ));
     $this->_globalredirect_batch_test();
@@ -370,7 +345,6 @@ class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
       'case_sensitive_urls' => 0,
       'term_path_handler' => 0,
       'frontpage_redirect' => 0,
-      'trailing_zero' => 1,
       'ignore_admin_path' => 0,
     ));
 
@@ -397,7 +371,6 @@ class GlobalRedirectTestCaseConfigBeta extends GlobalRedirectTestCase {
       'case_sensitive_urls' => 0,
       'term_path_handler' => 0,
       'frontpage_redirect' => 0,
-      'trailing_zero' => 0,
     ));
 
     $this->_globalredirect_batch_test();
