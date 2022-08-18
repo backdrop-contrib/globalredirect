@@ -27,7 +27,9 @@ function globalredirect_update_1000() {
 // any updates named globalredirect_update_1000() or higher. As such, we need
 // to somehow reset the update hook number back to what it should be. Once this
 // has executed, it should never be run again.
-if (function_exists('state_get') && state_get('globalredirect_update_fix') === NULL) {
+if (function_exists('state_get') &&
+    backdrop_bootstrap() > BACKDROP_BOOTSTRAP_LOCK &&
+    state_get('globalredirect_update_fix') === NULL) {
   /**
    * Reset Global Redirect module's update numbers.
    */
