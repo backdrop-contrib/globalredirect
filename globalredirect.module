@@ -44,6 +44,12 @@ function globalredirect_init() {
     }
   }
 
+  // Get the query string parameters. If none set, set to NULL
+  $query_string = backdrop_get_query_parameters();
+  if (empty($query_string)) {
+    $query_string = NULL;
+  }
+
   // Store the destination from the $_GET as, if we leave it in, backdrop_goto()
   // will go to that instead.
   if (isset($_GET['destination'])) {
@@ -51,14 +57,8 @@ function globalredirect_init() {
     unset($_GET['destination']);
   }
 
-  // Get the query string parameters. If none set, set to NULL
-  $query_string = backdrop_get_query_parameters();
-  if (empty($query_string)) {
-    $query_string = NULL;
-  }
-
-  // Establish the language prefix that should be used, ie. the one that
-  // backdrop_goto() would use
+  // Establish the language prefix that should be used, i.e. the one that
+  // backdrop_goto() would use.
   $options = array(
     'fragment' => '',
     'query' => $query_string,
@@ -66,6 +66,9 @@ function globalredirect_init() {
     'alias' => FALSE,
     'prefix' => '',
     'external' => FALSE,
+    // Inform other modules that hook_url_outbound_alter() was invoked by
+    // globalredirect.
+    'globalredirect' => TRUE,
   );
 
   // Get the request path. We cannot use request_path() as it uses a completely trimmed path.
@@ -109,7 +112,7 @@ function globalredirect_init() {
   $current_path = current_path();
 
   // If the feature is enabled, check and redirect taxonomy/term/* requests to their proper handler defined by hook_term_path().
-  if ($settings['term_path_handler'] && module_exists('taxonomy') && preg_match('/taxonomy\/term\/([0-9]+)$/', $current_path, $matches)) {
+  if ($settings['term_path_handler'] && module_exists('taxonomy') && preg_match('`^taxonomy/term/(\d+)$`', $current_path, $matches)) {
     // So the feature is enabled, as is taxonomy module and the current request is a taxonomy term page.
     // NOTE: This will only match taxonomy term pages WITHOUT a depth modifier
     $term = taxonomy_term_load($matches[1]);
@@ -117,11 +120,17 @@ function globalredirect_init() {
     // Get the term path for this term (handler is defined in the vocab table under module). If it differs from the request, then redirect.
     if (!empty($term) && ($term_path = entity_uri('taxonomy_term', $term)) && $term_path['path'] != $current_path) {
       $current_path = $term_path['path'];
+      if (isset($options['query'])) {
+        $options['query'] = array_merge($options['query'], $term_path['options']['query']);
+      }
+      elseif (isset($term_path['options']['query'])) {
+        $options['query'] = $term_path['options']['query'];
+      }
     }
   }
 
   // If Content Translation module is enabled then check the path is correct.
-  if ($settings['language_redirect'] && module_exists('translation') && preg_match('/node\/([0-9]+)(\/.+|)$/', $current_path, $matches)) {
+  if ($settings['language_redirect'] && module_exists('translation') && preg_match('/node\/([0-9]+)(\/view|)$/', $current_path, $matches)) {
     switch (config_get('locale.settings', 'language_negotiation_url_part')) {
       case LANGUAGE_NEGOTIATION_URL_PREFIX:
         // Check if there's a translation for the current language of the requested node...
@@ -198,8 +207,10 @@ function globalredirect_init() {
   // Compare the request to the alias. This also works as a 'deslashing'
   // agent. If we have a language prefix then prefix the alias
   if ($request_path != $prefix . $alias) {
-    // If it's not just a slash or user has deslash on, redirect
-    if (str_replace($prefix . $alias, '', $request_path) != '/' || $settings['deslash']) {
+    // If it's not just a slash or user has deslash on, redirect, but avoid
+    // redirecting to a directory if we are only deslashing, as apache mod_dir
+    // can cause an infinite loop.
+    if (str_replace($prefix . $alias, '', $request_path) != '/' || ($settings['deslash'] && !is_dir($alias))) {      globalredirect_goto($alias, $options);
       globalredirect_goto($alias, $options);
     }
   }
@@ -266,6 +277,34 @@ function globalredirect_menu() {
   );
 
   return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function globalredirect_menu_alter(&$items) {
+  $settings = _globalredirect_get_settings();
+  if (_globalredirect_is_active($settings) && $settings['comment_to_node']) {
+    $items['comment/%']['page callback'] = '_globalredirect_comment_to_node';
+  }
+}
+
+/**
+ * Redirects paths that start /comment/% to the URL for the parent node.
+ */
+function _globalredirect_comment_to_node($cid) {
+  if (($comment = comment_load($cid)) && ($node = node_load($comment->nid))) {
+    $page = comment_get_display_page($comment->cid, $node->type);
+    if ($page > 0) {
+      globalredirect_goto("node/$comment->nid", array('fragment'=>"comment-$comment->cid",'query'=>array('page'=>$page)));
+    }
+    else {
+      globalredirect_goto("node/$comment->nid", array('fragment'=>"comment-$comment->cid"));
+    }
+  }
+  else {
+    backdrop_not_found();
+  }
 }
 
 /**
@@ -354,6 +393,7 @@ function _globalredirect_get_settings($default_only = FALSE) {
     'term_path_handler' => 1,
     'frontpage_redirect' => 1,
     'ignore_admin_path' => 1,
+    'comment_to_node' => 1,
   );
 
   if ($default_only) {
