@@ -130,7 +130,7 @@ function globalredirect_init() {
   }
 
   // If Content Translation module is enabled then check the path is correct.
-  if ($settings['language_redirect'] && module_exists('translation') && preg_match('/node\/([0-9]+)(\/.+|)$/', $current_path, $matches)) {
+  if ($settings['language_redirect'] && module_exists('translation') && preg_match('/node\/([0-9]+)(\/view|)$/', $current_path, $matches)) {
     switch (config_get('locale.settings', 'language_negotiation_url_part')) {
       case LANGUAGE_NEGOTIATION_URL_PREFIX:
         // Check if there's a translation for the current language of the requested node...
