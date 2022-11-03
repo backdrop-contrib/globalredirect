@@ -92,6 +92,14 @@ function globalredirect_settings() {
     '#default_value' => $settings['ignore_admin_path'],
   );
 
+  $form['settings']['comment_to_node'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Rewrite Comment URLs to their parent node'),
+    '#description' => t('If enabled, any request to a URL beginning /comment/ will be redirected to the URL for the comment&rsquo;s parent node.<br />
+                         This avoids having multiple URLs for each node - one for the node itself, and one for each comment.'),
+    '#default_value' => $settings['comment_to_node'],
+  );
+
   $form['actions'] = array(
     '#type' => 'actions',
   );

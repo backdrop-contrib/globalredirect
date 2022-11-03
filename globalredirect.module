@@ -280,6 +280,34 @@ function globalredirect_menu() {
 }
 
 /**
+ * Implements hook_menu_alter().
+ */
+function globalredirect_menu_alter(&$items) {
+  $settings = _globalredirect_get_settings();
+  if (_globalredirect_is_active($settings) && $settings['comment_to_node']) {
+    $items['comment/%']['page callback'] = '_globalredirect_comment_to_node';
+  }
+}
+
+/**
+ * Redirects paths that start /comment/% to the URL for the parent node.
+ */
+function _globalredirect_comment_to_node($cid) {
+  if (($comment = comment_load($cid)) && ($node = node_load($comment->nid))) {
+    $page = comment_get_display_page($comment->cid, $node->type);
+    if ($page > 0) {
+      globalredirect_goto("node/$comment->nid", array('fragment'=>"comment-$comment->cid",'query'=>array('page'=>$page)));
+    }
+    else {
+      globalredirect_goto("node/$comment->nid", array('fragment'=>"comment-$comment->cid"));
+    }
+  }
+  else {
+    backdrop_not_found();
+  }
+}
+
+/**
  * Internal function to determine if GlobalRedirect is active.
  * Several rules have to be checked prior to execution, such as an empty post array,
  * the site must be online and we cannot be running in CLI mode (eg Drush).
@@ -365,6 +393,7 @@ function _globalredirect_get_settings($default_only = FALSE) {
     'term_path_handler' => 1,
     'frontpage_redirect' => 1,
     'ignore_admin_path' => 1,
+    'comment_to_node' => 1,
   );
 
   if ($default_only) {
