@@ -44,17 +44,17 @@ function globalredirect_init() {
     }
   }
 
+  // Get the query string parameters. If none set, set to NULL
+  $query_string = backdrop_get_query_parameters();
+  if (empty($query_string)) {
+    $query_string = NULL;
+  }
+
   // Store the destination from the $_GET as, if we leave it in, backdrop_goto()
   // will go to that instead.
   if (isset($_GET['destination'])) {
     $destination = $_GET['destination'];
     unset($_GET['destination']);
-  }
-
-  // Get the query string parameters. If none set, set to NULL
-  $query_string = backdrop_get_query_parameters();
-  if (empty($query_string)) {
-    $query_string = NULL;
   }
 
   // Establish the language prefix that should be used, i.e. the one that
