@@ -120,6 +120,12 @@ function globalredirect_init() {
     // Get the term path for this term (handler is defined in the vocab table under module). If it differs from the request, then redirect.
     if (!empty($term) && ($term_path = entity_uri('taxonomy_term', $term)) && $term_path['path'] != $current_path) {
       $current_path = $term_path['path'];
+      if (isset($options['query'])) {
+        $options['query'] = array_merge($options['query'], $term_path['options']['query']);
+      }
+      elseif (isset($term_path['options']['query'])) {
+        $options['query'] = $term_path['options']['query'];
+      }
     }
   }
 
